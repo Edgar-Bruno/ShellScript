@@ -42,6 +42,7 @@ case "$opcA" in
         cursorVI
         echo "-----------------------------------------------"
         cursorVI
+        clear
         ;;
     *)
 
@@ -51,7 +52,8 @@ case "$opcA" in
         sleep 2;
         cursorVI
         echo "-----------------------------------------------"
-        principal ,,
+        menuPrincipal
+        ;;
 esac
 
 }
