@@ -4,21 +4,38 @@ cursorVI(){ sleep 0.25; echo -n " -"; sleep 0.25; echo -n "> "; }
 
 menuPrincipal(){
 clear
+txtS=" [0] - Sair"
+txtD="* Escolha uma opção no menu *"
 
 
-echo "|===========================================|"
-echo "|     INSTALADOR INTRANET VINDULA 2.0       |"
-echo "|===========================================|"
-echo "|          *  ESCOLHA UMA OPÇÃO  *          |"
-echo "| [ 1 ]- Instalar a Intranet                |"
-echo "| [ 2 ]- Executar a Intranet                |"
-echo "| [ 0 ]- Sair                               |"
-echo "|===========================================|"
+ if [ -f /opt/vindula2.0/vindula/bin/instance ]; then
+   
+    txtT=" Executar o Vindula    "
+    txtL=" [1] - Iniciar a Intranet"
+    
+            coRa=42
+            coRaB=44
+            baseLayout  
+
+ else
+
+    txtT=" Instalador o Vindula  "
+    txtL=" [1] - Instalar a Intranet" 
+         
+            coRa=41
+            coRaB=44
+            baseLayout  
+ fi
+
+
+
+#echo $varzT
+#echo $varb
 
 cursorVI
-read opcA;
+read opcE;
 
-case "$opcA" in
+case "$opcE" in
     1)
         cursorVI
         echo "-----------------------------------------------"
@@ -33,25 +50,40 @@ case "$opcA" in
         cursorVI
         echo "[ 2 ]- Executar a Intranet "
         cursorVI
+
+        varz=$(whoami)
+        echo "edgar bruno" > eeee;
+        echo "$varz"
         executorInstancia
+
+      # chown "$varz":"$varz" luli
+
+       
         ;;
+
     0)
         clear
         cursorVI
-        echo " Obrigado por utilizar o Vindula!"
+        echo -e " \a Obrigado por utilizar o Vindula! "
         cursorVI
-        echo "-----------------------------------------------"
+
+        echo -e "----------------------------------------------- \a"
         cursorVI
         clear
         ;;
     *)
 
         clear
-        cursorVI
-        echo "Digite uma opção válida."
+        txtT=" !!! OPÇÃO INVÁLIDA !!!"
+        txtD=" Digite uma valida."
+        txtL=" Obrigado"
+        txtS=""
+
+ 
+            coRa=41
+            coRaB=41
+            baseLayout  
         sleep 2;
-        cursorVI
-        echo "-----------------------------------------------"
         menuPrincipal
         ;;
 esac
@@ -61,7 +93,7 @@ esac
 
 
 instalarVindula(){
-	
+
 cursorVI
 clear;
 cursorVI
@@ -122,9 +154,27 @@ menuPrincipal
 }
 
 executorInstancia(){
-cd /	
- ./opt/vindula2.0/vindula/bin/instance fg
+cd /
+ ./opt/vindula2.0/vindula/bin/instance start
+ #x-www-browser localhost:8080
+
+
  menuPrincipal
+}
+
+baseLayout(){
+    
+echo -e " \n \e[${coRa}m \e[m \e[${coRaB};37;1m ${txtT} \e[m \e[${coRaB}m  \e[m \e[${coRaB}m \e[m \e[${coRaB}m \e[m"
+echo -e " \e[${coRa}m \e[m"
+echo -e " \e[${coRa}m \e[m ${txtD}"
+echo -e " \e[${coRa}m \e[m"
+echo -e " \e[${coRa}m \e[m ${txtL}"
+echo -e " \e[${coRa}m \e[m ${txtS}\n"
+#echo -e " \e[43m  \e[m                              \e[43m  \e[m"
+#echo -e " \e[43m                                  \e[m"
+#echo " ---------------------------- "
+#echo " * Escolha uma opção no menu* "
+ 
 }
 
 menuPrincipal
