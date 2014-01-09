@@ -1,48 +1,35 @@
 #!/bin/bash
-
-cursorVI(){ sleep 0.25; echo -n " -"; sleep 0.25; echo -n "> "; }
-
+cursorVI(){ sleep 0.25; echo -n "   -"; sleep 0.25; echo -n "> "; }
 menuPrincipal(){
-clear
-txtS=" [0] - Sair"
-txtD="* Escolha uma opção no menu *"
 
+estiPrinci
 
  if [ -f /opt/vindula2.0/vindula/bin/instance ]; then
    
-    txtT=" Executar o Vindula    "
-    txtL=" [1] - Iniciar a Intranet"
+    txtT=" Vindula, a sua INTRANET"
+    txtLb=" [1] - Iniciar a Intranet"
     
             coRa=42
             coRaB=44
-            baseLayout  
+            baseLayout
 
  else
 
     txtT=" Instalador o Vindula  "
-    txtL=" [1] - Instalar a Intranet" 
+    txtLb=" [1] - Instalar a Intranet" 
          
             coRa=41
             coRaB=44
             baseLayout  
  fi
 
-
-
-#echo $varzT
-#echo $varb
-
 cursorVI
 read opcE;
+echo -e "\a"
 
 case "$opcE" in
     1)
-        cursorVI
-        echo "-----------------------------------------------"
-        cursorVI
-        echo "[ 1 ]- Instalar a Intranet  "
-        cursorVI
-        instalarVindula
+       confirmarInt
         ;;
     2)
         cursorVI
@@ -57,46 +44,20 @@ case "$opcE" in
         executorInstancia
 
       # chown "$varz":"$varz" luli
-
-       
         ;;
-
     0)
-        clear
-        cursorVI
-        echo -e " \a Obrigado por utilizar o Vindula! "
-        cursorVI
-
-        echo -e "----------------------------------------------- \a"
-        cursorVI
-        clear
+        estiSair
         ;;
     *)
-
-        clear
-        txtT=" !!! OPÇÃO INVÁLIDA !!!"
-        txtD=" Digite uma valida."
-        txtL=" Obrigado"
-        txtS=""
-
- 
-            coRa=41
-            coRaB=41
-            baseLayout  
-        sleep 2;
-        menuPrincipal
+        opcInvalida
         ;;
 esac
 
 }
 
-
-
 instalarVindula(){
 
-cursorVI
 clear;
-cursorVI
 
 echo "INSTALANDO DEPENDENCIAS"
 sleep 2;
@@ -158,23 +119,118 @@ cd /
  ./opt/vindula2.0/vindula/bin/instance start
  #x-www-browser localhost:8080
 
-
  menuPrincipal
 }
 
 baseLayout(){
-    
-echo -e " \n \e[${coRa}m \e[m \e[${coRaB};37;1m ${txtT} \e[m \e[${coRaB}m  \e[m \e[${coRaB}m \e[m \e[${coRaB}m \e[m"
-echo -e " \e[${coRa}m \e[m"
-echo -e " \e[${coRa}m \e[m ${txtD}"
-echo -e " \e[${coRa}m \e[m"
-echo -e " \e[${coRa}m \e[m ${txtL}"
-echo -e " \e[${coRa}m \e[m ${txtS}\n"
-#echo -e " \e[43m  \e[m                              \e[43m  \e[m"
-#echo -e " \e[43m                                  \e[m"
-#echo " ---------------------------- "
-#echo " * Escolha uma opção no menu* "
- 
+
+echo -e " \n \e[${coRa}m \e[m \e[${coRaB}${txtSt}m ${txtT} \e[m \e[${coRaB}m  \e[m \e[${coRaB}m \e[m \e[${coRaB}m \e[m"    
+echo -e " \e[${coRa}m \e[m \e[${txtSb}m ${txtLd} \e[m" 
+echo -e " \e[${coRa}m \e[m \e[${txtSa}m ${txtDi} \e[m"
+echo -e " \e[${coRa}m \e[m \e[${txtSb}m ${txtLa} \e[m"
+echo -e " \e[${coRa}m \e[m \e[${txtSb}m ${txtLb} \e[m"
+echo -e " \e[${coRa}m \e[m \e[${txtSb}m ${txtLc} \e[m \n"
+
 }
 
-menuPrincipal
+opcInvalida(){
+
+        clear
+        txtT=" !!! OPÇÃO INVÁLIDA !!!"
+        txtDi="    Essa opção não exite!      "
+        txtLb="Escolha uma das opções validas "
+        txtLc="no menu principal."
+        txtLa=""
+        txtLd=""
+
+            estiAlerta
+            baseLayout  
+
+        sleep 2;
+
+        menuPrincipal
+}
+
+estiAlerta(){
+
+    coRa=41
+    coRaB=41
+    txtSa="40;33;1"
+}
+
+estiSair(){
+
+        clear
+        txtT=" A Liberiun agradece.  "
+        txtDi="    Essa opção não exite!      "
+        txtLd="Escolha uma das opções validas "
+        txtLa="Escolha uma das opções validas "
+        txtLb="no menu principal."
+        txtLc=""
+
+            coRa=42
+            coRaB=41
+            baseLayout 
+
+        sleep 2;
+}
+estiPrinci(){
+
+    clear
+    txtSa="40;37;1"
+    txtSt=";37;1"
+    txtSb=";0"
+
+    txtLd=""
+    txtDi=""
+    txtLa="-------------------------------"
+    txtLc=" [0] - Sair"
+    txtDi=" * Escolha uma opção no menu * "
+    
+}
+
+confirmarInt(){
+   
+     clear
+        txtT=" Confirmar Instalação !"
+        txtLd="     -*- ATENÇÃO -*-           "
+        txtDi="Antes de instalar o Vindula,   "
+        txtLa="deve-se instalar as dependêcnias"
+        txtLb="necessárias"
+        txtLc=" [s] - Sim  [n] - Não"
+
+ 
+            coRa=41
+            coRaB=42
+            txtSa="40;33;1"
+            txtSb="1"
+            baseLayout  
+
+        sleep 2;
+
+        cursorVI
+        read opcI
+
+        case "$opcI" in
+    s)
+       #instalarVindula
+       echo "Install"
+       sleep 2;
+       menuPrincipal
+        ;;
+    n)  
+        echo "Cancel"
+        sleep 2;
+        menuPrincipal
+        ;;
+    0)
+        
+        ;;
+    *)
+        opcInvalida
+        ;;
+esac
+
+}
+
+menuPrincipal    
