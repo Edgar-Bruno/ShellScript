@@ -4,52 +4,58 @@ menuPrincipal(){
 
 estiPrinci
 
- if [ -f /opt/vindula2.0/vindula/bin/instance ]; then
+
+ if [ -f /opt/vindula2.0/vindula/bin/instan-ce ]; then
    
     txtT=" Vindula, a sua INTRANET"
     txtLb=" [1] - Iniciar a Intranet"
-    
-            coRa=42
-            coRaB=44
-            baseLayout
+    varVl=3
 
+            estiApro
+            baseLayout
+      
  else
 
     txtT=" Instalador o Vindula  "
     txtLb=" [1] - Instalar a Intranet" 
-         
-            coRa=41
-            coRaB=44
+    varVl=2
+            estiInst
+            txtSc=";0"
             baseLayout  
+         
  fi
 
 cursorVI
-read opcE;
+read opcD;
 echo -e "\a"
+
+        if [ "$opcD" == 0 ]; then
+            opcE=0
+
+        else
+            opcE=$(($varVl-$opcD))
+
+        fi  
 
 case "$opcE" in
     1)
-       confirmarInt
+             
+        
+        confirmarInt
         ;;
     2)
-        cursorVI
-        echo "-----------------------------------------------"
-        cursorVI
-        echo "[ 2 ]- Executar a Intranet "
-        cursorVI
-
-        varz=$(whoami)
-        echo "edgar bruno" > eeee;
-        echo "$varz"
-        executorInstancia
-
-      # chown "$varz":"$varz" luli
+        
+        aguardIni
         ;;
     0)
+        
         estiSair
         ;;
     *)
+ 
+        
         opcInvalida
+        menuPrincipal
         ;;
 esac
 
@@ -57,10 +63,8 @@ esac
 
 instalarVindula(){
 
-clear;
 
-echo "INSTALANDO DEPENDENCIAS"
-sleep 2;
+clear;
 
 apt-get -y install gcc g++ make build-essential libjpeg-dev libpng12-dev subversion mercurial zlib1g-dev
 apt-get -y install libc6-dev python-setuptools python-virtualenv pkg-config libpcre3-dev libssl-dev
@@ -69,11 +73,6 @@ apt-get -y install python-lxml libxml2 libxml2-dev libxslt-dev libncurses5 libnc
 apt-get -y install mysql-server libmysqlclient-dev libmysqld-dev libsqlite3-dev libsasl2-dev git-core
 apt-get -y install graphicsmagick ghostscript poppler-utils tesseract-ocr openoffice.org libldap2-dev
 gem install docsplit
-
-clear;
-cursorVI
-
-echo "INSTALAÇÃO DAS DEPENDECIAS FINALIZADAS"
 
 mkdir -v /opt/vindula2.0 /opt/python2.7
 
@@ -89,7 +88,6 @@ python bootstrap.py
 
 /opt/python2.7/buildout.python/bin/virtualenv-2.7 --no-site-packages /opt/vindula2.0/
 
-#wget -c -P /opt/vindula2.0/ "http://downloads.sourceforge.net/project/vindula/2.0.1/Vindula-2.0.1LTS.tar.gz"
 wget -c -P /opt/vindula2.0/ "http://downloads.sourceforge.net/project/vindula/2.0/Vindula-2.0LTS.tar.gz"
 
 tar xvf /opt/vindula2.0/Vindula-2.0LTS.tar.gz -C /opt/vindula2.0/
@@ -104,22 +102,20 @@ cd /opt/vindula2.0/vindula/
 
 ./bin/buildout  -vN
 
-clear
-sleep 2;
-cursorVI
-echo "A INSTALAÇÃO DA SUA INTRANET VINDULA FOI CONCLUÍDA COM SUCESSO!"
-sleep 3;
+chmod 777 -R /opt/vindula2.0/
 
 menuPrincipal
 
 }
 
 executorInstancia(){
+
 cd /
  ./opt/vindula2.0/vindula/bin/instance start
- #x-www-browser localhost:8080
+ sleep 5;
+ x-www-browser localhost:8080/vindula/&
 
- menuPrincipal
+
 }
 
 baseLayout(){
@@ -129,7 +125,7 @@ echo -e " \e[${coRa}m \e[m \e[${txtSb}m ${txtLd} \e[m"
 echo -e " \e[${coRa}m \e[m \e[${txtSa}m ${txtDi} \e[m"
 echo -e " \e[${coRa}m \e[m \e[${txtSb}m ${txtLa} \e[m"
 echo -e " \e[${coRa}m \e[m \e[${txtSb}m ${txtLb} \e[m"
-echo -e " \e[${coRa}m \e[m \e[${txtSb}m ${txtLc} \e[m \n"
+echo -e " \e[${coRa}m \e[m \e[${txtSc}m ${txtLc} \e[m \n"
 
 }
 
@@ -143,7 +139,7 @@ opcInvalida(){
         txtLa=""
         txtLd=""
 
-            estiAlerta
+            estiExep
             baseLayout  
 
         sleep 2;
@@ -153,10 +149,40 @@ opcInvalida(){
 
 estiAlerta(){
 
-    coRa=41
-    coRaB=41
+    coRa=43
+    coRaB=44
     txtSa="40;33;1"
 }
+
+estiApro(){
+
+    txtSa="40;33;1"
+    txtSb="0"
+
+    coRa=42
+    coRaB=44
+}
+
+estiInst(){
+
+    txtSa="40;33;1"
+    txtSb="0"
+
+    txtSc=";1"
+
+    coRa=41
+    coRaB=44
+
+}
+
+estiExep(){
+
+    coRa=43
+    coRaB=41
+    txtSa="40;33;1"
+    txtSc=";0"
+}
+
 
 estiSair(){
 
@@ -167,9 +193,7 @@ estiSair(){
         txtLa="Escolha uma das opções validas "
         txtLb="no menu principal."
         txtLc=""
-
-            coRa=42
-            coRaB=41
+            
             baseLayout 
 
         sleep 2;
@@ -177,9 +201,14 @@ estiSair(){
 estiPrinci(){
 
     clear
+
+    opcD=0
+    varVl=0
+
     txtSa="40;37;1"
     txtSt=";37;1"
     txtSb=";0"
+    txtSc=";0"
 
     txtLd=""
     txtDi=""
@@ -197,40 +226,73 @@ confirmarInt(){
         txtDi="Antes de instalar o Vindula,   "
         txtLa="deve-se instalar as dependêcnias"
         txtLb="necessárias"
-        txtLc=" [s] - Sim  [n] - Não"
+        txtLc="[s] - Sim | [n] - Não | [0] - Sair"
 
- 
-            coRa=41
-            coRaB=42
-            txtSa="40;33;1"
-            txtSb="1"
+            estiInst
             baseLayout  
 
         sleep 2;
 
         cursorVI
         read opcI
+        echo -e "\a"
 
-        case "$opcI" in
+    case "$opcI" in
+
     s)
-       #instalarVindula
-       echo "Install"
-       sleep 2;
-       menuPrincipal
+        aguardIni
+        menuPrincipal
         ;;
-    n)  
-        echo "Cancel"
-        sleep 2;
+    n)        
         menuPrincipal
         ;;
     0)
-        
+        estiSair
         ;;
     *)
         opcInvalida
+        menuPrincipal
         ;;
 esac
 
 }
+
+aguardIni(){
+
+     clear
+
+     if [ "$opcI" != s ]; then
+        txtT="Inicializando o Vindula"
+        txtLd="                               "
+        txtDi="   * Aguarde o carregamento *   "
+        txtLa="Dentro de instantes o navegador "
+        txtLb="de internet será iniciado."
+        txtLc=""
+
+           estiApro
+           baseLayout
+           
+           executorInstancia 
+
+     else
+
+        txtT="Inicializando a Instalação"
+        txtLd="                               "
+        txtDi="   * Aguarde o carregamento *   "
+        txtLa="Dentro de instantes a instalação"
+        txtLb="será iniciada."
+        txtLc=""
+        
+           estiApro
+           baseLayout
+           sleep 19;
+           instalarVindula         
+
+      fi 
+       
+       
+
+}
+
 
 menuPrincipal    
