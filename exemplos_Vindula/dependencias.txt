@@ -1,0 +1,21 @@
+ gcc g++ make build-essential links cron libjpeg-dev libpng-dev 
+ zlib1g-dev libc6-dev python-setuptools python-virtualenv 
+ python-openssl python-dev python-ldap libldap2-dev 
+ python-dateutil python-lxml python-memcache pkg-config 
+ libpcre3-dev wv libssl-dev python-lxml libxml2 libxml2-dev 
+ libxslt1.1 libxslt1-dev libncurses5 libncurses5-dev 
+ libmysqlclient-dev libmysqld-dev libsqlite3-dev libsasl2-dev 
+ git-core libfreetype6 libfreetype6-dev liblcms liblcms-dev 
+ liblcms-utils libbz2-dev libwebp-dev libtiff4-dev libedit-dev 
+ tcl8.5-dev tk8.5-dev python-software-properties libav-tools 
+
+
+
+$ sudo add-apt-repository ppa:libreoffice/ppa 
+$ sudo apt-get update 
+
+ ruby rubygems graphicsmagick ghostscript poppler-utils 
+ tesseract-ocr pdftk libreoffice 
+
+$ sudo gem install bundle 
+$ sudo gem install docsplit -v 0.6.4
