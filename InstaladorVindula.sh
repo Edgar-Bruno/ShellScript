@@ -54,7 +54,10 @@ esac
 
 instalarVindula(){
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> 3b4319c94dcdb6b0f92e83191fcb860b4544ae28
 clear;
 
 apt-get -y install gcc g++ make build-essential libjpeg-dev libpng12-dev subversion mercurial zlib1g-dev
@@ -244,7 +247,10 @@ aguardIni(){
         txtLa=" Dentro de instantes o navegador "
         txtLb=" de internet será iniciado.      "
 
+<<<<<<< HEAD
            sleep 2;
+=======
+>>>>>>> 3b4319c94dcdb6b0f92e83191fcb860b4544ae28
            executorInstancia 
      else
 
@@ -252,8 +258,12 @@ aguardIni(){
         txtT="Instalação do Vindula  "
         txtLa=" Dentro de instantes a instalação"
         txtLb=" será iniciada.                  "
+<<<<<<< HEAD
 
            sleep 2;
+=======
+  
+>>>>>>> 3b4319c94dcdb6b0f92e83191fcb860b4544ae28
            instalarVindula         
      fi 
             txtLd="                                 "
@@ -263,7 +273,11 @@ aguardIni(){
       
        estiApro
        baseLayout
+<<<<<<< HEAD
        
+=======
+       sleep 2;
+>>>>>>> 3b4319c94dcdb6b0f92e83191fcb860b4544ae28
 }
 
 menuPrincipal    
