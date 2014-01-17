@@ -75,14 +75,14 @@ cd /opt/core/python/
 python bootstrap.py
 
 easy_install – U distribute
-
+cd
 ./bin/buildout -vN
 
-/opt/core/python/bin/virtualenv-2.7 --no-site-packages /opt/vindula2.0/
+/opt/core/python/bin/virtualenv-2.7 --no-site-packages /opt/intranet/app/intranet/
 
 wget -c -P /opt/intranet/app/intranet/ "http://downloads.sourceforge.net/project/vindula/2.0/Vindula-2.0LTS.tar.gz"
 
-tar xvf /opt/vindula2.0/Vindula-2.0LTS.tar.gz -C /opt/intranet/app/intranet/
+tar xvf /opt/intranet/app/intranet/Vindula-2.0LTS.tar.gz -C /opt/intranet/app/intranet/
 
 cd /opt/intranet/app/intranet/vindula/
 
