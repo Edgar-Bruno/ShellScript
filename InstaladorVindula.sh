@@ -56,6 +56,10 @@ opcE=-5
 
 instalarVindula(){
 
+
+aguardMsn   
+sleep 3; 
+
 add-apt-repository ppa:libreoffice/ppa 
 apt-get -y install mysql-client mysql-server
 apt-get -y install curl
@@ -101,7 +105,7 @@ menuPrincipal
 }
 
 executorInstancia(){
-
+aguardMsn
 cd /
  ./opt/intranet/app/intranet/vindula/bin/instance start
  sleep 5;
@@ -158,6 +162,15 @@ estiExep(){
     coRa=43
     coRaB=41
     txtSc="40;37;6"
+
+}
+
+aguardMsn(){
+
+    coRa=41
+            txtLd="                                 "
+            txtDi="     Aguarde o carregamento      " 
+            txtLc="          por favor.             "
 
 }
 
@@ -240,34 +253,30 @@ confirmarInt(){
 aguardIni(){
 
      clear
+     estiApro
 
      if [ "$opcI" != s ]; then
 
         txtT="Inicializando o Vindula"
         txtLa=" Dentro de instantes o navegador "
         txtLb=" de internet será iniciado.      "
+     
+      baseLayout
+      sleep 3; 
+      executorInstancia 
 
-           sleep 3; 
-           executorInstancia 
      else
 
         txtT="Inicializando o Vindula"
         txtT="Instalação do Vindula  "
         txtLa=" Dentro de instantes a instalação"
         txtLb=" será iniciada.                  "
+      
+      baseLayout
+      sleep 3; 
+      instalarVindula 
 
-           sleep 3; 
-           instalarVindula         
      fi 
-          
-            txtLd="                                 "
-            txtDi="     Aguarde o carregamento      " 
-            txtLc="          por favor.             "
-            opcI
-            sleep 3;
-
-       estiApro
-       baseLayout
 
     opcI=-5   
        
