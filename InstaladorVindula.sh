@@ -6,7 +6,7 @@ menuPrincipal(){
 
 estiPrinci
 
- if [ -f /opt/vindula2.0/vindula/bin/instance ]; then
+ if [ -f /opt/intranet/app/intranet/vindula/bin/instance ]; then
   
     txtT="Vindula, a sua INTRANET"
     txtLb=" [1] - Iniciar a Intranet        "
@@ -54,39 +54,37 @@ esac
 
 instalarVindula(){
 
-<<<<<<< HEAD
+add-apt-repository ppa:libreoffice/ppa 
+apt-get -y install mysql-client mysql-server
+apt-get -y install curl
 
-=======
->>>>>>> 3b4319c94dcdb6b0f92e83191fcb860b4544ae28
-clear;
+vindulaD=`curl https://raw2.github.com/Edgar-Bruno/ShellScript/master/exemplos_Vindula/dependencias.txt`
 
-apt-get -y install gcc g++ make build-essential libjpeg-dev libpng12-dev subversion mercurial zlib1g-dev
-apt-get -y install libc6-dev python-setuptools python-virtualenv pkg-config libpcre3-dev libssl-dev
-apt-get -y install python-openssl python-dev python-ldap  python-dev python-dateutil python-lxml libbz2-dev
-apt-get -y install python-lxml libxml2 libxml2-dev libxslt-dev libncurses5 libncurses5-dev ruby rubygems
-apt-get -y install mysql-server libmysqlclient-dev libmysqld-dev libsqlite3-dev libsasl2-dev git-core
-apt-get -y install graphicsmagick ghostscript poppler-utils tesseract-ocr openoffice.org libldap2-dev
-gem install docsplit
+for inst in $vindulaD; do echo "`apt-get -y install $inst`"; done 
 
-mkdir -v /opt/vindula2.0 /opt/python2.7
+apt-get updat
+gem install bundle 
+gem install docsplit -v 0.6.4
 
-cursorVI
+mkdir -v /opt/core/ /opt/intranet/ /opt/intranet/app/ /opt/intranet/app/intranet/
 
-git clone https://github.com/vindula/buildout.python.git /opt/python2.7/buildout.python
+git clone https://github.com/vindula/buildout.python.git /opt/core/python
 
-cd /opt/python2.7/buildout.python/
+cd /opt/core/python/
 
 python bootstrap.py
 
+easy_install – U distribute
+
 ./bin/buildout -vN
 
-/opt/python2.7/buildout.python/bin/virtualenv-2.7 --no-site-packages /opt/vindula2.0/
+/opt/core/python/bin/virtualenv-2.7 --no-site-packages /opt/vindula2.0/
 
-wget -c -P /opt/vindula2.0/ "http://downloads.sourceforge.net/project/vindula/2.0/Vindula-2.0LTS.tar.gz"
+wget -c -P /opt/intranet/app/intranet/ "http://downloads.sourceforge.net/project/vindula/2.0/Vindula-2.0LTS.tar.gz"
 
-tar xvf /opt/vindula2.0/Vindula-2.0LTS.tar.gz -C /opt/vindula2.0/
+tar xvf /opt/vindula2.0/Vindula-2.0LTS.tar.gz -C /opt/intranet/app/intranet/
 
-cd /opt/vindula2.0/vindula/
+cd /opt/intranet/app/intranet/vindula/
 
 ../bin/easy_install -U distribute
 
@@ -103,7 +101,7 @@ menuPrincipal
 executorInstancia(){
 
 cd /
- ./opt/vindula2.0/vindula/bin/instance start
+ ./opt/intranet/app/intranet/vindula/bin/instance start
  sleep 5;
  x-www-browser localhost:8080/vindula/&
 }
@@ -247,10 +245,7 @@ aguardIni(){
         txtLa=" Dentro de instantes o navegador "
         txtLb=" de internet será iniciado.      "
 
-<<<<<<< HEAD
            sleep 2;
-=======
->>>>>>> 3b4319c94dcdb6b0f92e83191fcb860b4544ae28
            executorInstancia 
      else
 
@@ -258,12 +253,8 @@ aguardIni(){
         txtT="Instalação do Vindula  "
         txtLa=" Dentro de instantes a instalação"
         txtLb=" será iniciada.                  "
-<<<<<<< HEAD
 
            sleep 2;
-=======
-  
->>>>>>> 3b4319c94dcdb6b0f92e83191fcb860b4544ae28
            instalarVindula         
      fi 
             txtLd="                                 "
@@ -273,11 +264,7 @@ aguardIni(){
       
        estiApro
        baseLayout
-<<<<<<< HEAD
        
-=======
-       sleep 2;
->>>>>>> 3b4319c94dcdb6b0f92e83191fcb860b4544ae28
 }
 
-menuPrincipal    
+menuPrincipal  
