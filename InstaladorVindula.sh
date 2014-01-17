@@ -50,6 +50,8 @@ case "$opcE" in
         ;;
 esac
 
+opcE=-5
+
 }
 
 instalarVindula(){
@@ -75,7 +77,7 @@ cd /opt/core/python/
 python bootstrap.py
 
 easy_install – U distribute
-cd
+
 ./bin/buildout -vN
 
 /opt/core/python/bin/virtualenv-2.7 --no-site-packages /opt/intranet/app/intranet/
@@ -245,7 +247,7 @@ aguardIni(){
         txtLa=" Dentro de instantes o navegador "
         txtLb=" de internet será iniciado.      "
 
-           sleep 2;
+           sleep 3; 
            executorInstancia 
      else
 
@@ -254,16 +256,20 @@ aguardIni(){
         txtLa=" Dentro de instantes a instalação"
         txtLb=" será iniciada.                  "
 
-           sleep 2;
+           sleep 3; 
            instalarVindula         
      fi 
+          
             txtLd="                                 "
-            txtDi="   * Aguarde o carregamento *    " 
-            txtLc="                                 "
+            txtDi="     Aguarde o carregamento      " 
+            txtLc="          por favor.             "
+            opcI
+            sleep 3;
 
-      
        estiApro
        baseLayout
+
+    opcI=-5   
        
 }
 
