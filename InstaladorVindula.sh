@@ -168,9 +168,16 @@ estiExep(){
 aguardMsn(){
 
     coRa=41
-            txtLd="                                 "
-            txtDi="     Aguarde o carregamento      " 
-            txtLc="          por favor.             "
+
+        txtT=" Vindula a sua Intranet"
+        txtLd="                                 "
+        txtDi="    Aguarde o carregamento       "
+        txtLa="         por favor.              "
+        txtLb="                                 "
+        txtLc="   http://www.vindula.com.br     "
+
+
+
 
 }
 
@@ -254,23 +261,30 @@ aguardIni(){
 
      clear
      estiApro
+     txtDi="           * AGUARDE *           "
+     txtLb="          será iniciada.         "
+     txtSc="40;37;6"
 
      if [ "$opcI" != s ]; then
 
         txtT="Inicializando o Vindula"
-        txtLa=" Dentro de instantes o navegador "
-        txtLb=" de internet será iniciado.      "
+        txtLd="                                 "
+        txtLa=" Dentro de instantes a instalação"
+
+        txtLc="                                 "
      
       baseLayout
-      sleep 3; 
+      sleep 3;
+      opcI=-5 
       executorInstancia 
 
      else
 
-        txtT="Inicializando o Vindula"
-        txtT="Instalação do Vindula  "
+        txtT="Instalando o Vindula..."
+        txtLd="                                 "
         txtLa=" Dentro de instantes a instalação"
-        txtLb=" será iniciada.                  "
+        txtLc="                                 "
+
       
       baseLayout
       sleep 3; 
@@ -278,7 +292,7 @@ aguardIni(){
 
      fi 
 
-    opcI=-5   
+      
        
 }
 
