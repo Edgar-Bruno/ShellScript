@@ -56,7 +56,6 @@ opcE=-5
 
 instalarVindula(){
 
-
 aguardMsn   
 sleep 3; 
 
@@ -136,7 +135,6 @@ opcInvalida(){
         txtLb=" Escolha uma das opções validas  "
         txtLc=" no menu principal.              "
        
-
             estiExep
             baseLayout  
 
@@ -162,23 +160,6 @@ estiExep(){
     coRa=43
     coRaB=41
     txtSc="40;37;6"
-
-}
-
-aguardMsn(){
-
-    coRa=41
-
-        txtT=" Vindula a sua Intranet"
-        txtLd="                                 "
-        txtDi="    Aguarde o carregamento       "
-        txtLa="         por favor.              "
-        txtLb="                                 "
-        txtLc="   http://www.vindula.com.br     "
-
-
-
-
 }
 
 estiSair(){
@@ -269,9 +250,9 @@ aguardIni(){
 
         txtT="Inicializando o Vindula"
         txtLd="                                 "
-        txtLa=" Dentro de instantes a instalação"
+        txtLa="  Dentro de instantes a intranet "
 
-        txtLc="                                 "
+        txtLc="  O navegador será carregado ... "
      
       baseLayout
       sleep 3;
@@ -284,7 +265,6 @@ aguardIni(){
         txtLd="                                 "
         txtLa=" Dentro de instantes a instalação"
         txtLc="                                 "
-
       
       baseLayout
       sleep 3; 
@@ -292,8 +272,6 @@ aguardIni(){
 
      fi 
 
-      
-       
 }
 
 menuPrincipal  
