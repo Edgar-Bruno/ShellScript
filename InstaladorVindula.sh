@@ -55,9 +55,7 @@ opcE=-5
 }
 
 instalarVindula(){
-
-
-aguardMsn   
+  
 sleep 3; 
 
 add-apt-repository ppa:libreoffice/ppa 
@@ -105,7 +103,7 @@ menuPrincipal
 }
 
 executorInstancia(){
-aguardMsn
+
 cd /
  ./opt/intranet/app/intranet/vindula/bin/instance start
  sleep 5;
@@ -169,8 +167,8 @@ aguardMsn(){
 
     coRa=41
             txtLd="                                 "
-            txtDi="     Aguarde o carregamento      " 
-            txtLc="          por favor.             "
+            txtDi="  *  Aguarde o carregamento  *   " 
+            txtLc="                                 "
 
 }
 
@@ -254,6 +252,7 @@ aguardIni(){
 
      clear
      estiApro
+     aguardMsn
 
      if [ "$opcI" != s ]; then
 
@@ -261,6 +260,7 @@ aguardIni(){
         txtLa=" Dentro de instantes o navegador "
         txtLb=" de internet será iniciado.      "
      
+      
       baseLayout
       sleep 3; 
       executorInstancia 
@@ -271,6 +271,7 @@ aguardIni(){
         txtT="Instalação do Vindula  "
         txtLa=" Dentro de instantes a instalação"
         txtLb=" será iniciada.                  "
+
       
       baseLayout
       sleep 3; 
