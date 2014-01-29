@@ -1,0 +1,44 @@
+#!/bin/bash
+
+controVer(){
+
+	cd $prod
+	echo " =*=  $prod =*= " > Relatorio
+	#Aqui é feito o tratamento  para pegar a versão do produto.
+    version=$(cat setup.py | sed -r '/^version = /!g' | sed '/^$/d')
+
+    #Aqui é feito o tratamento  para pegar o branch do produto.
+	branch=$(git branch | sed -r '/^\*/!g' | sed '/^$/d' )
+
+	echo -e "  * $version \n  * Branch = $branch " >> ../ChangeLog
+	echo " ______________________________________" >> ../ChangeLog
+
+	echo -e "  * $version \n  * Branch = $branch " >> Relatorio
+	echo " ______________________________________" >> Relatorio
+
+	cd ../
+	
+}
+
+funcRel(){
+
+	cd $prod
+
+	#Aqui é feito o tratamento das informações e formatações com expressões regulares
+	varLog=$(git log --pretty=format:'%ad :%s' | sed 's/.\{1,4\}//' | sed 's/^/ ======================================\n  /' | sed -e 's/ -.* :/\n  -------------------\n -:/g' | sed -e 's/ +.* :/\n  -------------------\n -:/g' )
+	echo -e "$varLog \n ======================================\n" >> ../ChangeLog
+	echo -e "$varLog \n ======================================\n" >> Relatorio
+	cd ../
+}
+
+titulo=$(echo -e " Produtos Vindula \n = = ======================= = =\n \n" | sed ':a;s/^.\{1,40\}$/ & /;ta') 
+echo "$titulo"  > ChangeLog
+
+for prod in $(ls -d */);
+ do echo "  =*=  $prod =*= " | tr '[a-zA-Z]' '[A-ZA-Z]' | sed 's:/::g' >> ChangeLog; controVer; done
+
+echo -e "\n\n Relatorios das atualizações dos produtos Vindula \n" >> ChangeLog;
+
+for prod in $(ls -d */);
+ do echo "  =*= $prod =*="  | tr '[a-zA-Z]' '[A-ZA-Z]' | sed 's:/::g' >> ChangeLog; controVer; funcRel;
+ echo -e "\n ======================================\n\n" >> ChangeLog; done
