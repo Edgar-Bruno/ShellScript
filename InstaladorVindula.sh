@@ -57,15 +57,19 @@ opcE=-5
 instalarVindula(){
 
 add-apt-repository ppa:libreoffice/ppa 
+
 apt-get -y install mysql-client mysql-server
+
 apt-get -y install curl
 
-vindulaD=`curl https://raw2.github.com/Edgar-Bruno/ShellScript/master/exemplos_Vindula/dependencias.txt`
+apt-get update
+
+vindulaD=`curl https://raw2.github.com/vindula/buildout.python/master/dependencias.txt`
 
 for inst in $vindulaD; do echo "`apt-get -y install $inst`"; done 
 
-apt-get updat
 gem install bundle 
+
 gem install docsplit -v 0.6.4
 
 mkdir -v /opt/core/ /opt/intranet/ /opt/intranet/app/ /opt/intranet/app/intranet/
@@ -76,15 +80,16 @@ cd /opt/core/python/
 
 python bootstrap.py
 
-easy_install – U distribute
+easy_install - U distribute
 
 ./bin/buildout -vN
 
 /opt/core/python/bin/virtualenv-2.7 --no-site-packages /opt/intranet/app/intranet/
 
-wget -c -P /opt/intranet/app/intranet/ "http://downloads.sourceforge.net/project/vindula/2.0/Vindula-2.0LTS.tar.gz"
+wget -c -P /opt/intranet/app/intranet/ "http://mirror.vindula.com.br/Vindula-2.0.3LTS.tar.gz"
 
-tar xvf /opt/intranet/app/intranet/Vindula-2.0LTS.tar.gz -C /opt/intranet/app/intranet/
+
+tar xvf /opt/intranet/app/intranet/Vindula-2.0.3LTS.tar.gz -C /opt/intranet/app/intranet/
 
 cd /opt/intranet/app/intranet/vindula/
 
@@ -94,7 +99,7 @@ cd /opt/intranet/app/intranet/vindula/
 
 ../bin/python bootstrap.py
 
-./bin/buildout  -vN
+./bin/buildout -vN
 
 }
 
@@ -268,7 +273,6 @@ aguardIni(){
       instalarVindula 
 
      fi 
-
        
 }
 
