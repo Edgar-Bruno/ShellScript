@@ -1,4 +1,25 @@
 #!/bin/bash
+#IntranetVindula
+#
+#
+#Instala todos os requisitos necessários
+#Executa a instancia da intranet.
+# Versão 1.01 - 16/02/2014 Adicionado suporte comandos por linha de comango
+# Versão 1.00 - 05/02/2014
+#
+#---------------------------------------------------------------------------
+
+MENSAGEM_USO="
+Uso: $0 [-h]
+
+-a          Ajuda
+-v          Mostra a versão do programa
+"
+if test "$1" = "-h"
+    then
+        echo "$MENSAGEM_USO"
+        exit 0
+fi        
 
 cursorVI(){ sleep 0.25; echo -n "   -"; sleep 0.25; echo -n "> "; }
 
@@ -58,6 +79,8 @@ instalarVindula(){
 
 add-apt-repository ppa:libreoffice/ppa 
 
+apt-get update
+
 apt-get -y install mysql-client mysql-server
 
 apt-get -y install curl
@@ -100,6 +123,8 @@ cd /opt/intranet/app/intranet/vindula/
 ../bin/python bootstrap.py
 
 ./bin/buildout -vN
+
+sudo chown -R $USER:$USER /opt/intranet/
 
 }
 
