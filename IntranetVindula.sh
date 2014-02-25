@@ -4,23 +4,72 @@
 #
 # Instala todos os requisitos necessários da intranet Vindula
 # Executa a instancia da intranet.
+#---------------------------------------------------------------------------
+# Versão 1.05 - 25/02/2014
+#             - Inclusão da função de verificação da intraface de rede
+#             - Bugfix do layout
+#             - Restrição de arquitetura para 12.04 Server 64bits
+#             - Inclusão de mensagens  
+#---------------------------------------------------------------------------
 # Versão 1.04 - 24/02/2014
 #             - Melhorias nas ERs
-#             -   
+#             - Criação do usuário vindula
+#             - Executar a intranet com esse usuário
+#---------------------------------------------------------------------------
 # Versão 1.03 - 21/02/2014
-#             - Identificação do sistem operacional UNIX (server | desktop)  
+#             - Identificação do sistem operacional UNIX (server | desktop)
+#---------------------------------------------------------------------------
 # Versão 1.02 - 19/02/2014
 #             - Acerto na criação dos diretórios
 #             - Adicionado as opções:
 #             --------- Ajuda 
 #             --------- Versão  do Instalador
-#             --------- Instalar  
+#             --------- Instalar / Recuperar instalação
+#---------------------------------------------------------------------------
 # Versão 1.01 - 16/02/2014
 #             - Inclusão de cabaçalho 
 #             - Adicionado suporte comandos por linha de comando e resoluçao de permissionamento.
-# Versão 1.00 - 05/02/2014
-#
 #---------------------------------------------------------------------------
+# Versão 1.00 - 05/02/2014
+#             - Não há funções, opções e layout
+#---------------------------------------------------------------------------
+
+verificaIP(){
+
+    interfaceCon="wlan0 eth0"
+        
+    semIpValido=0
+
+for conect in $interfaceCon; do
+
+ipValido=$(ip addr \
+    | grep inet \
+    | grep $conect \
+    | awk -F" " '{print $2}'\
+    | sed 's/\/.*$//')
+    
+    if [[ -n $ipValido ]]; then
+
+    echo -e "\n Interface de rede $conect:
+ Acesse a Intranet Vindula em sua rede interna
+ através desse endereço \e[1m$ipValido:8080/vindula\e[m\n";
+
+    semIpValido=5
+    
+    fi
+
+done
+
+    if [[ $semIpValido -eq 0 ]]; then
+
+    echo -e "\n  Para acessar a intranet através de sua
+ rede interna, deve obter um \e[1mip válido\e[m.
+ Por favor, verifique as configurações
+ de rede\n";
+
+    fi
+
+}
 
 cursorVI(){ sleep 0.25; echo -n "   -"; sleep 0.25; echo -n "> "; }
 
@@ -67,30 +116,47 @@ for validaVer in $requisMin; do
         fi
 
 ((contador++)); done
+
+#Verifica arquitetura
+
+                if [[ $archteturaSio = x86_64 ]]; then
+
+                    echo -e "  \e[42;37;1m OK \e[m 64bits ";
+
+                else
+
+                    echo -e "  \e[41;37;1m NO \e[m 64bits ";
+
+                fi
+
 }
 
 verificadorMsn(){
 
-if [[ $requiDiver -gt 1 ]] || [[ $UbuntuDife -eq 1 ]] ; then
+if [[ $requiDiver -ne 0 ]] ; then
 
-    echo -e "\e[0m\n  Alguns requisitos necessários para a \
-    \n  instalação da Intranet Vindula são\
-    \n  diferentes do recomendado. \e[1mA instalação\
-    \n  ou a execução da Instranet Vindula podem\
-    \n  corrompidas.\e[m\n"
+    echo -e "\n      \e[41;37;1m    !!! INSTALAÇÃO INTERROMPIDA !!!    \e[m\
+    \n   A instalação da Intranet Vindula será cancelada.\
+    \n   As configurações do servidor não atendem aos\
+    \n   requisitos necessários. Para maiores informações\
+    \n   acesse. \e[1m http://www.vindula.com.br\e[m \n" 
 
+    exit 0
 else
 
+    confirmarInt
+
     echo -e "\e[0m\n  O seu sistema, atende aos requisitos\
-    \n  necessários para a instalação e \
+    \n  necessários para a instalação e\
     \n  execução da \e[1mIntranet Vindula.\e[m\n"
+
+    confirmarIntOPC
 fi  
 }
 
-
 menuPrincipal(){
 
-estiPrinci
+clear
 
  if [ -f /opt/intranet/app/intranet/vindula/bin/instance ]; then
   
@@ -99,30 +165,41 @@ estiPrinci
     varVl=300
 
             estiApro
-            baseLayout
  else
 
     txtT="Instalador o Vindula   "
     txtLb=" [1] - Instalar a Intranet       " 
     varVl=200
+
             estiInst
-            baseLayout  
+
   fi
 
+baseLayout  
+
 cursorVI
+
 read opcD;
+
 echo -e "\a"
 
-        if [ "$opcD" == 0 ]; then
+        if [[ "$opcD" -eq 0 ]]; then
+
             opcE=100
+
         else
+
             opcE=$(($varVl-$opcD))
+
         fi  
 
 case "$opcE" in
 
     199)
-        confirmarInt
+        clear
+        verificador
+        verificadorMsn
+
         ;;
     299)
         aguardIni
@@ -132,6 +209,7 @@ case "$opcE" in
         ;;
     *)
         opcInvalida
+
         menuPrincipal
         ;;
 esac
@@ -187,29 +265,34 @@ cd /opt/intranet/app/intranet/vindula/
 
 ./bin/buildout -vN
 
-chown -R $USER:$USER /opt/intranet/
+useradd vindula
+
+chown -R vindula:vindula /opt/intranet/
 
 }
 
 executorInstancia(){
 
-    verificador
+verificador
 
 cd /
- ./opt/intranet/app/intranet/vindula/bin/instance start
+
+sudo -u vindula ./opt/intranet/app/intranet/vindula/bin/instance start
 
 if [[ UbuntuServer -eq 1 ]]; then
 
+    echo -e "\n  Dentro de instantes, o navegador\
+    \n  será carregado com a \e[1mIntranet Vindula\e[m."
+
+    verificaIP
+
      sleep 10;
+
      x-www-browser localhost:8080/vindula/&
 
 else        
 
-    echo -e "\n  Você pode acessar a Intranet Vindula inserindo \
-    \n  no IP dessa máquina através porta 8080 \n\
-    \n  Ex:. \e[1m 192.168.0.101:8080\e[m \n\
-    \n  Para isso, utilize o comando \e[1mifconfig\e[m"
-
+    verificaIP
 
 fi
 
@@ -218,8 +301,9 @@ fi
 baseLayout(){
 
 echo -e "\n  \e[40m                                    \e[m"
-echo -e "  \e[40m \e[m\e[${coRa}m \e[m\e[40m \e[m\e[${coRaB}${txtSt}m ${txtT} \e[m\e[40m \e[m\e[${coRaB}m\
-  \e[m\e[40m \e[m\e[${coRaB}m \e[m\e[40m \e[m\e[${coRaB}m \e[m\e[40m \e[m"    
+echo -e "  \e[40m \e[m\e[${coRa}m \e[m\e[40m \e[m\e[${coRaB}${txtSt}m \
+${txtT} \e[m\e[40m \e[m\e[${coRaB}m  \e[m\e[40m \e[m\e[${coRaB}m \e[m\e[40m \
+\e[m\e[${coRaB}m \e[m\e[40m \e[m" 
 echo -e "  \e[40m \e[m\e[${coRa}m \e[m\e[${txtSd}m${txtLd} \e[m" 
 echo -e "  \e[40m \e[m\e[${coRa}m \e[m\e[${txtSa}m${txtDi} \e[m"
 echo -e "  \e[40m \e[m\e[${coRa}m \e[m\e[${txtSb}m${txtLa} \e[m"
@@ -246,6 +330,7 @@ opcInvalida(){
 
         sleep 2;
 
+        estiPrinci
         menuPrincipal
 }
 
@@ -322,10 +407,11 @@ confirmarInt(){
             estiInst
             baseLayout  
 
-verificador
-verificadorMsn
+}
 
-        cursorVI
+confirmarIntOPC(){
+
+            cursorVI
         read opcI
         echo -e "\a"
 
@@ -390,7 +476,11 @@ sisOp=$(cat /etc/apt/sources.list \
     | sed 's:(.*)::'\
     | sed -n 1p)
 
+estiPrinci
+
 requisMin="Ubuntu 12.04 Server"
+
+archteturaSio=$(arch)
 
 MENSAGEM_USO="
 Uso: $(basename "$0") ['OPCOES']
@@ -406,20 +496,26 @@ OPCOES:
 
            -a | --ajuda )
 
+                clear
                 echo -e " $MENSAGEM_USO"
                 exit 0
                 ;;
            -V | --versao )
 
-                echo -e "\n `cat $(basename "$0") | sed -r '/^# Vers/!g' \
-                | sed '/^$/d' | sed -n '/\#/{p;q;}'`"
+                echo -e "\n `cat $(basename "$0")\
+                | sed -r '/^# Vers/!g'\
+                | sed '/^$/d' \
+                | sed -n '/\#/{p;q;}'`\n"
 
-                echo -e " $sisOp\n"
+
                 exit 0
+
                 ;;
            -I | --instalar )
+              
                 confirmarInt
                 exit 0
+
                 ;;
             *)
                 if test -n "$1"; then 
