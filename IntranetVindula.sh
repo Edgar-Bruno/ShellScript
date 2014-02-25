@@ -4,6 +4,9 @@
 #
 # Instala todos os requisitos necessários da intranet Vindula
 # Executa a instancia da intranet.
+# Versão 1.04 - 24/02/2014
+#             - Melhorias nas ERs
+#             -   
 # Versão 1.03 - 21/02/2014
 #             - Identificação do sistem operacional UNIX (server | desktop)  
 # Versão 1.02 - 19/02/2014
@@ -19,8 +22,71 @@
 #
 #---------------------------------------------------------------------------
 
-
 cursorVI(){ sleep 0.25; echo -n "   -"; sleep 0.25; echo -n "> "; }
+
+verificador(){
+
+requiDiver=0
+
+contador=0
+
+for validaVer in $requisMin; do
+
+    confVers=$(echo "$sisOp" \
+    | sed -e 's:\('$validaVer'\):(\1):g' \
+    | sed -n 's:[^()]*\(([^)]*)\)[^(]*:\1:gp')
+    
+        if [[ -n $confVers ]]; then
+
+            echo -e "  \e[42;37;1m OK \e[m $validaVer";
+
+        else
+
+            if [[ -z $confVers ]] && [[ $requiDiver -eq 0 ]]; then
+
+                if [[ $contador -eq 1 ]]; then
+               
+                    UbuntuDife=1
+
+                else    
+
+                    UbuntuServer=1
+
+                fi  
+
+            ((requiDiver++))    
+
+            echo -e "  \e[41;37;1m NO \e[m $validaVer";
+
+            else
+
+            ((requiDiver++))
+
+            fi  
+
+        fi
+
+((contador++)); done
+}
+
+verificadorMsn(){
+
+if [[ $requiDiver -gt 1 ]] || [[ $UbuntuDife -eq 1 ]] ; then
+
+    echo -e "\e[0m\n  Alguns requisitos necessários para a \
+    \n  instalação da Intranet Vindula são\
+    \n  diferentes do recomendado. \e[1mA instalação\
+    \n  ou a execução da Instranet Vindula podem\
+    \n  corrompidas.\e[m\n"
+
+else
+
+    echo -e "\e[0m\n  O seu sistema, atende aos requisitos\
+    \n  necessários para a instalação e \
+    \n  execução da \e[1mIntranet Vindula.\e[m\n"
+fi  
+}
+
 
 menuPrincipal(){
 
@@ -106,7 +172,8 @@ easy_install - U distribute
 
 /opt/core/python/bin/virtualenv-2.7 --no-site-packages /opt/intranet/app/intranet/
 
-wget -c -P /opt/intranet/app/intranet/ "http://mirror.vindula.com.br/Vindula-2.0.3LTS.tar.gz"
+wget -c -P /opt/intranet/app/intranet/ \
+"http://downloads.sourceforge.net/project/vindula/2.0.3/Vindula-2.0.3LTS.tar.gz"
 
 tar xvf /opt/intranet/app/intranet/Vindula-2.0.3LTS.tar.gz -C /opt/intranet/app/intranet/
 
@@ -125,10 +192,27 @@ chown -R $USER:$USER /opt/intranet/
 }
 
 executorInstancia(){
+
+    verificador
+
 cd /
  ./opt/intranet/app/intranet/vindula/bin/instance start
- sleep 10;
- x-www-browser localhost:8080/vindula/&
+
+if [[ UbuntuServer -eq 1 ]]; then
+
+     sleep 10;
+     x-www-browser localhost:8080/vindula/&
+
+else        
+
+    echo -e "\n  Você pode acessar a Intranet Vindula inserindo \
+    \n  no IP dessa máquina através porta 8080 \n\
+    \n  Ex:. \e[1m 192.168.0.101:8080\e[m \n\
+    \n  Para isso, utilize o comando \e[1mifconfig\e[m"
+
+
+fi
+
 }
 
 baseLayout(){
@@ -238,6 +322,9 @@ confirmarInt(){
             estiInst
             baseLayout  
 
+verificador
+verificadorMsn
+
         cursorVI
         read opcI
         echo -e "\a"
@@ -297,28 +384,37 @@ aguardIni(){
        
 }
 
+#Aqui é capturado e tratado a verão do Ubuntu
+sisOp=$(cat /etc/apt/sources.list \
+    | sed -n 's:[^[]*\(\[[^]]*\]\)[^[]*:\1:gp'\
+    | sed 's:(.*)::'\
+    | sed -n 1p)
+
+requisMin="Ubuntu 12.04 Server"
+
 MENSAGEM_USO="
-Uso: $(basename "$0") [OPCOES]
+Uso: $(basename "$0") ['OPCOES']
 
 OPCOES:
-
+\e[1m
   -a, --ajuda           - Mostra a ajuda
   -V, --versao          - Mostra a versão do programa
   -I, --instalar        - Instalar a Intranet   
-
+\e[m
 "
         case "$1" in
 
            -a | --ajuda )
-                echo "$MENSAGEM_USO"
+
+                echo -e " $MENSAGEM_USO"
                 exit 0
                 ;;
            -V | --versao )
-                
-                sisOp=$(cat /etc/apt/sources.list | sed -r 's:^[^[]*([^]]*)[^[]*:\1:g' \
-                | sed '/^$/d' | sed -e 's/\[/\ # /g' | sed -n '/\ # /{p;q;}')
-                echo -e "\n `cat $(basename "$0") | sed -r '/^# Vers/!g' | sed '/^$/d' | sed -n '/\#/{p;q;}'`"
-                echo -e "$sisOp\n"
+
+                echo -e "\n `cat $(basename "$0") | sed -r '/^# Vers/!g' \
+                | sed '/^$/d' | sed -n '/\#/{p;q;}'`"
+
+                echo -e " $sisOp\n"
                 exit 0
                 ;;
            -I | --instalar )
