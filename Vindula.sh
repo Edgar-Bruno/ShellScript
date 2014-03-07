@@ -247,7 +247,7 @@ OPCOES:
                 ;;
         esac
 
- if [[ -f "$nomeArquivoB" ]]; then 
+ if [[ -f /opt/"$nomeArquivoB" ]]; then 
 
 	vertificaDor
 
