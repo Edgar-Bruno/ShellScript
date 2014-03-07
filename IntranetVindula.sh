@@ -5,6 +5,11 @@
 # Instala todos os requisitos necessários da intranet Vindula
 # Executa a instancia da intranet.
 #---------------------------------------------------------------------------
+# Versão 1.06 - 25/02/2014
+#             - Redefinição do Layout(cores, formatação, texto e mensagems de alerta)
+#             - Case sensitive
+#             - Alteração do diretório do arquivo IntranetVindula.sh
+#---------------------------------------------------------------------------
 # Versão 1.05 - 25/02/2014
 #             - Inclusão da função de verificação da intraface de rede
 #             - Bugfix do layout
@@ -417,11 +422,11 @@ confirmarIntOPC(){
 
     case "$opcI" in
 
-        s)
+        s | S )
             aguardIni
             estiSair
             ;;
-        n)        
+        n | N )        
             menuPrincipal
             ;;
         0)
