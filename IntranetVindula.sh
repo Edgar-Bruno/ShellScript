@@ -1,43 +1,77 @@
 #!/bin/bash
 #IntranetVindula
 #
-#
 # Instala todos os requisitos necessários da intranet Vindula
-# Executa a instancia da intranet.
+# Executa a instancia da intranet / Status, Start e Stop
+#
 #---------------------------------------------------------------------------
-# Versão 1.06 - 25/02/2014
+# Versão 1.06 - 07/03/2014
 #             - Redefinição do Layout(cores, formatação, texto e mensagems de alerta)
-#             - Case sensitive
+#             - Case sensitive das opção
 #             - Alteração do diretório do arquivo IntranetVindula.sh
+#             - Adição de opções. Status e Stop da Intranet
+#             - Inclusão do verificador de dependencias instaladas
+#             - Bugfix - Start | Status | Stop 
 #---------------------------------------------------------------------------
-# Versão 1.05 - 25/02/2014
+# Versão 1.05 - 28/02/2014
+#             - Homolagação 
+#---------------------------------------------------------------------------
+# Versão 1.05b - 25/02/2014
 #             - Inclusão da função de verificação da intraface de rede
 #             - Bugfix do layout
 #             - Restrição de arquitetura para 12.04 Server 64bits
 #             - Inclusão de mensagens  
 #---------------------------------------------------------------------------
-# Versão 1.04 - 24/02/2014
+# Versão 1.04b - 24/02/2014
 #             - Melhorias nas ERs
 #             - Criação do usuário vindula
 #             - Executar a intranet com esse usuário
 #---------------------------------------------------------------------------
-# Versão 1.03 - 21/02/2014
+# Versão 1.03a - 21/02/2014
 #             - Identificação do sistem operacional UNIX (server | desktop)
 #---------------------------------------------------------------------------
-# Versão 1.02 - 19/02/2014
+# Versão 1.02a - 19/02/2014
 #             - Acerto na criação dos diretórios
 #             - Adicionado as opções:
 #             --------- Ajuda 
 #             --------- Versão  do Instalador
 #             --------- Instalar / Recuperar instalação
 #---------------------------------------------------------------------------
-# Versão 1.01 - 16/02/2014
+# Versão 1.01a - 16/02/2014
 #             - Inclusão de cabaçalho 
 #             - Adicionado suporte comandos por linha de comando e resoluçao de permissionamento.
 #---------------------------------------------------------------------------
-# Versão 1.00 - 05/02/2014
+# Versão 1.00a - 05/02/2014
 #             - Não há funções, opções e layout
 #---------------------------------------------------------------------------
+
+cursorVI(){ sleep 0.25; echo -n "   -"; sleep 0.25; echo -n "> "; }
+
+mensaAlert(){
+
+local y=""
+local x=""
+
+while [[ y -lt 6 ]]; do
+
+    if [[ x -gt 1 ]]; then
+        x=0
+        coAle="40;"
+    else
+        coAle="$corInfo"
+    fi
+    
+echo -ne "  \e[${coAle}37;1m       $mensaInfo       \e[m\r"
+
+sleep 0.25
+
+((x++))
+
+((y++))
+
+ done
+
+}
 
 verificaIP(){
 
@@ -55,9 +89,9 @@ ipValido=$(ip addr \
     
     if [[ -n $ipValido ]]; then
 
-    echo -e "\n Interface de rede $conect:
+    echo -e " Interface de rede $conect:
  Acesse a Intranet Vindula em sua rede interna
- através desse endereço \e[1m$ipValido:8080/vindula\e[m\n";
+ através desse endereço \e[1m$ipValido:8080/vindula\e[m\n"
 
     semIpValido=5
     
@@ -67,16 +101,14 @@ done
 
     if [[ $semIpValido -eq 0 ]]; then
 
-    echo -e "\n  Para acessar a intranet através de sua
- rede interna, deve obter um \e[1mip válido\e[m.
+     echo -e "\n  Para acessar a intranet através de sua
+ rede interna, você deve obter um \e[1mip válido\e[m.
  Por favor, verifique as configurações
  de rede\n";
 
     fi
 
 }
-
-cursorVI(){ sleep 0.25; echo -n "   -"; sleep 0.25; echo -n "> "; }
 
 verificador(){
 
@@ -92,7 +124,7 @@ for validaVer in $requisMin; do
     
         if [[ -n $confVers ]]; then
 
-            echo -e "  \e[42;37;1m OK \e[m $validaVer";
+            echo -e "  \e[42;37;1m OK \e[m $validaVer"
 
         else
 
@@ -110,7 +142,7 @@ for validaVer in $requisMin; do
 
             ((requiDiver++))    
 
-            echo -e "  \e[41;37;1m NO \e[m $validaVer";
+            echo -e "  \e[41;37;1m NO \e[m $validaVer"
 
             else
 
@@ -120,19 +152,21 @@ for validaVer in $requisMin; do
 
         fi
 
-((contador++)); done
+((contador++))
+
+ done
 
 #Verifica arquitetura
 
-                if [[ $archteturaSio = x86_64 ]]; then
+if [[ $archteturaSio = x86_64 ]]; then
 
-                    echo -e "  \e[42;37;1m OK \e[m 64bits ";
+    echo -e "  \e[42;37;1m OK \e[m 64bits ";
 
-                else
+else
 
-                    echo -e "  \e[41;37;1m NO \e[m 64bits ";
+    echo -e "  \e[41;37;1m NO \e[m 64bits ";
 
-                fi
+fi
 
 }
 
@@ -140,8 +174,11 @@ verificadorMsn(){
 
 if [[ $requiDiver -ne 0 ]] ; then
 
-    echo -e "\n      \e[41;37;1m    !!! INSTALAÇÃO INTERROMPIDA !!!    \e[m\
-    \n   A instalação da Intranet Vindula será cancelada.\
+    local corInfo="41;"
+    local mensaInfo="!!! INSTALAÇÃO INTERROMPIDA !!!"
+    mensaAlert
+
+    echo -e "\n  A instalação da Intranet Vindula será cancelada.\
     \n   As configurações do servidor não atendem aos\
     \n   requisitos necessários. Para maiores informações\
     \n   acesse. \e[1m http://www.vindula.com.br\e[m \n" 
@@ -163,24 +200,46 @@ menuPrincipal(){
 
 clear
 
- if [ -f /opt/intranet/app/intranet/vindula/bin/instance ]; then
-  
-    txtT="Vindula, a sua INTRANET"
-    txtLb=" [1] - Iniciar a Intranet        "
-    varVl=300
+if [ -f /opt/intranet/app/intranet/vindula/bin/instance ]; then
 
-            estiApro
- else
+    txtT="Status do Vindula   "
 
-    txtT="Instalador o Vindula   "
+    if [[ $status -eq 9 ]]; then
+
+        txtLb=" [1] - Encerrar execução         " 
+        varVl=400
+        i=2
+
+    else
+
+        if [[ -z $validaRece ]]; then
+
+            txtLb=" [1] - Iniciar a Intranet        "
+            varVl=300
+            i=0
+
+        fi
+    fi
+
+else
+
+    txtT="Instalador do Vindula   "
     txtLb=" [1] - Instalar a Intranet       " 
     varVl=200
 
-            estiInst
+    estiInst
+ 
+fi
 
-  fi
+estiApro  
 
 baseLayout  
+
+if [[ $varVl -ne 200 ]]; then
+
+    verificadorINSTACIA
+
+fi    
 
 cursorVI
 
@@ -188,54 +247,75 @@ read opcD;
 
 echo -e "\a"
 
-        if [[ "$opcD" -eq 0 ]]; then
+    if [[ "$opcD" -eq 0 ]]; then
 
-            opcE=100
+        opcE=100
 
-        else
+    else
 
-            opcE=$(($varVl-$opcD))
+        opcE=$(($varVl-$opcD))
 
-        fi  
+    fi  
 
 case "$opcE" in
 
-    199)
+
+    100 )
+
+        estiSair
+        ;;
+
+    199 )
+
         clear
         verificador
         verificadorMsn
-
         ;;
-    299)
+
+    299 )
         aguardIni
         ;;
-    100)
-        estiSair
-        ;;
+
+    399 )
+
+        sleep 3
+        encerrarInstancia
+        exit 0
+        ;; 
+
     *)
         opcInvalida
-
         menuPrincipal
         ;;
 esac
 
-opcE=-5
+opcE=""
 
 }
 
 instalarVindula(){
 
-add-apt-repository ppa:libreoffice/ppa 
-
 apt-get update
+
+add-apt-repository ppa:libreoffice/ppa 
 
 apt-get -y install mysql-client mysql-server
 
 apt-get -y install curl
 
-vindulaD=`curl https://raw2.github.com/vindula/buildout.python/master/dependencias.txt`
+vindulaD=`curl -s https://raw2.github.com/vindula/buildout.python/master/dependencias.txt`
 
-for inst in $vindulaD; do echo "`apt-get -y install $inst`"; done 
+for inst in $vindulaD; do 
+
+    local installN=$(dpkg -l | grep $inst | wc -l)
+
+    if [[ $installN -eq 0 ]]; then  
+
+        echo -ne "`apt-get -y install $inst`\r"
+
+    fi
+
+done
 
 gem install bundle 
 
@@ -276,13 +356,27 @@ chown -R vindula:vindula /opt/intranet/
 
 }
 
-executorInstancia(){
-
-verificador
+encerrarInstancia(){
 
 cd /
 
-sudo -u vindula ./opt/intranet/app/intranet/vindula/bin/instance start
+echo "`$varInstancia ${vetStausInst[i]}`"
+
+sleep 2
+
+verificadorINSTACIA
+
+exit 0
+
+}
+
+executorInstancia(){
+
+cd /
+
+echo "`$varInstancia ${vetStausInst[i]}`"
+
+sleep 2.5
 
 if [[ UbuntuServer -eq 1 ]]; then
 
@@ -291,15 +385,81 @@ if [[ UbuntuServer -eq 1 ]]; then
 
     verificaIP
 
-     sleep 10;
-
      x-www-browser localhost:8080/vindula/&
 
 else        
 
+    verificadorINSTACIA
+    
     verificaIP
-
+    
 fi
+
+}
+
+verificadorProcessoPID(){
+
+cd /
+
+varInstancia='sudo -u vindula ./opt/intranet/app/intranet/vindula/bin/instance'
+
+vetStausInst=(start status stop)
+
+echo -e "`$varInstancia ${vetStausInst[i]}`"
+
+recebeSaida=$_
+
+validaRece=$(echo "$recebeSaida" | sed -r '/pro/!g' )
+
+i=""
+
+}
+
+verificadorINSTACIA(){
+
+local conexao=""
+local tempoEspera="" 
+
+while [[ $conexao -eq 1 ]] | [[ $tempoEspera -le 10 ]]; do
+
+    nc -z localhost 8080
+
+    conexao=$?
+
+    if [[ $status -eq 9  ]] && [[ $conexao != 0 ]]; then 
+
+        status=""
+        menuPrincipal
+        exit 0
+
+    else    
+
+        echo -ne " Aguarde a verificação ... [ $tempoEspera ] \r"
+        sleep 0.35
+
+        ((tempoEspera++))
+    fi    
+
+done
+
+if [[ $conexao -eq 0 ]]; then
+
+    conexaoEstabe=10
+
+    local corInfo="42;"
+    local mensaInfo="CONEXÃO ESTABELECIDA."
+
+else
+
+    local corInfo="41;"
+    local mensaInfo="  CONEXÃO ENCERRADA  "
+    
+fi
+
+ mensaAlert
+
+ sleep 2
+ echo -e "\n"
 
 }
 
@@ -329,7 +489,6 @@ opcInvalida(){
         txtLb=" Escolha uma das opções validas  "
         txtLc=" no menu principal.              "
        
-
             estiExep
             baseLayout  
 
@@ -342,13 +501,13 @@ opcInvalida(){
 estiApro(){
 
     coRa=42
-    coRaB=44
+    coRaB=43
 }
 
 estiInst(){
 
     coRa=41
-    coRaB=46
+    coRaB=43
 }
 
 estiExep(){
@@ -363,7 +522,7 @@ estiSair(){
 
         clear
 
-        txtT=" A Liberiun agradece.  "
+        txtT=" O Vindula agradece.  "
         txtLd="  Obrigado por utilizar o Vindula"
         txtDi=" Você gostaria de saber mais     "
         txtLa=" sobre nossos serviços?          "
@@ -375,8 +534,18 @@ estiSair(){
 
             estiApro
             baseLayout 
-            sleep 2;
-            exit;
+            sleep 2
+
+    if [[ $varVl -eq 200 ]]; then
+
+        local corInfo="42;"
+        local mensaInfo="INSTALAÇÃO COMPLETA"
+        mensaAlert
+
+    fi     
+
+exit 0
+
 }
 
 estiPrinci(){
@@ -403,9 +572,9 @@ confirmarInt(){
 
         txtT=" Confirmar Instalação !"
         txtLd="        -*- ATENÇÃO -*-          "
-        txtDi="   Antes de instalar o Vindula,  "
-        txtLa=" deve-se instalar as dependêcnias"
-        txtLb=" necessárias.                    "
+        txtDi="   Antes de instalar o Vindula.  "
+        txtLa=" Para proceguir com a instalação,"
+        txtLb=" Deseja instalar as dependencias?"   
         txtLc=" [s]- Sim | [n]- Não | [0]- Sair "
 
             txtSc="40;37;1"
@@ -416,7 +585,7 @@ confirmarInt(){
 
 confirmarIntOPC(){
 
-            cursorVI
+         cursorVI
         read opcI
         echo -e "\a"
 
@@ -426,7 +595,8 @@ confirmarIntOPC(){
             aguardIni
             estiSair
             ;;
-        n | N )        
+        n | N )   
+            estiPrinci     
             menuPrincipal
             ;;
         0)
@@ -434,6 +604,7 @@ confirmarIntOPC(){
             ;;
         *)
             opcInvalida
+            confirmarIntOPC
             ;;
     esac
 
@@ -446,17 +617,16 @@ aguardIni(){
      txtDi="           * AGUARDE *           "
      txtLb="          será iniciada.         "
      txtSc="40;37;6"
+     txtLc="                                 "
 
-     if [ "$opcI" != s ]; then
+     if [[ $opcI != [Ss] ]]; then
 
         txtT="Inicializando o Vindula"
         txtLd="                                 "
         txtLa=" Dentro de instantes, a intranet "
-
-        txtLc="                                 "
      
       baseLayout
-      sleep 3;
+      sleep 2
       opcI=-5 
       executorInstancia
 
@@ -465,15 +635,16 @@ aguardIni(){
         txtT="Instalando o Vindula..."
         txtLd="                                 "
         txtLa=" Dentro de instantes a instalação"
-        txtLc="                                 "
 
       baseLayout
-      sleep 3; 
+      sleep 2
       instalarVindula 
 
      fi 
        
 }
+
+estiPrinci
 
 #Aqui é capturado e tratado a verão do Ubuntu
 sisOp=$(cat /etc/apt/sources.list \
@@ -481,7 +652,7 @@ sisOp=$(cat /etc/apt/sources.list \
     | sed 's:(.*)::'\
     | sed -n 1p)
 
-estiPrinci
+i=1
 
 requisMin="Ubuntu 12.04 Server"
 
@@ -493,8 +664,9 @@ Uso: $(basename "$0") ['OPCOES']
 OPCOES:
 \e[1m
   -a, --ajuda           - Mostra a ajuda
-  -V, --versao          - Mostra a versão do programa
-  -I, --instalar        - Instalar a Intranet   
+  -V, --versao          - Mostra a versão do programa e sai
+  -I, --instalar        - Instalar a Intranet (Reset da Instalação)
+      --statos          - Mostra o Statu da execução da intranet.
 \e[m
 "
         case "$1" in
@@ -503,8 +675,10 @@ OPCOES:
 
                 clear
                 echo -e " $MENSAGEM_USO"
+
                 exit 0
                 ;;
+
            -V | --versao )
 
                 echo -e "\n `cat $(basename "$0")\
@@ -512,16 +686,21 @@ OPCOES:
                 | sed '/^$/d' \
                 | sed -n '/\#/{p;q;}'`\n"
 
-
                 exit 0
-
                 ;;
+
            -I | --instalar )
               
                 confirmarInt
-                exit 0
+                confirmarIntOPC
 
+                exit 0
                 ;;
+
+            --statos )
+                
+                status=9       
+                ;;    
             *)
                 if test -n "$1"; then 
                     echo -e "\n A opção [ $1 ] é inválida. \n"
@@ -529,5 +708,7 @@ OPCOES:
                 fi
                 ;;
         esac
+
+verificadorProcessoPID
 
 menuPrincipal 

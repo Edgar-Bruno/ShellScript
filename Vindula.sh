@@ -9,6 +9,8 @@
 #         	  - Atribuição de variavel para "leitura/download"
 #             - Adiçao de expressão regular para dinamismo sobre o nome do arquivo baixado	
 #             - Atribuição de variavel para o nome o arquivo
+#             - Adicionado as opções:
+#             --------- Ajuda 
 #---------------------------------------------------------------------------
 # Versão 1.02 - 28/02/2014
 #			  - Homolagação 
@@ -40,13 +42,12 @@ nomeArquivoB=$( echo "$varHTTP" \
 				| sed 's:|:.:g' )
 
 
-installN=$(dpkg -l | grep curl | wc -l)
+local installN=$(dpkg -l | grep curl | wc -l)
 
 if [[ $installN -eq 0 ]]; then	
 
-echo "estalar"
-sleep 5
 	apt-get -y install curl
+
 fi
 
 mensaAlert(){
@@ -219,6 +220,8 @@ OPCOES:
 
   -a, --ajuda           - Mostra a ajuda.
   -V, --versao          - Mostra a versão do Vindula, habilita atualizações e sai.
+      --reinstalar      - Reinstalar a Intranet.
+      --status          - Mostra o Statu da execução da intranet.
 
 "
  clear
@@ -227,22 +230,30 @@ OPCOES:
            -a | --ajuda )
                
                 echo -e " $MENSAGEM_USO"
-                exit 0
                 ;;
            -V | --versao )
 
-				vVersao=90
+				vVersao=" "
 
            		vertificaDor
-
-                exit 0
-
                 ;;
+
+               --reinstalar )
+				cd /
+				/opt/"$nomeArquivoB" --instalar
+				;;
+				
+               --status )
+ 
+				cd /
+				/opt/"$nomeArquivoB" --statos
+				exit 0
+				;;				
 
             *)
                 if test -n "$1"; then 
                     echo -e "\n A opção [ $1 ] é inválida. \n"
-                    exit 0
+                 exit 0   
                 fi
                 ;;
         esac
