@@ -41,7 +41,6 @@ nomeArquivoB=$( echo "$varHTTP" \
 				| sed -n '/|/{h;${x;p;};d;};H;${x;p;}'\
 				| sed 's:|:.:g' )
 
-
 local installN=$(dpkg -l | grep curl | wc -l)
 
 if [[ $installN -eq 0 ]]; then	
@@ -252,7 +251,7 @@ OPCOES:
 
             *)
                 if test -n "$1"; then 
-                    echo -e "\n A opção [ $1 ] é inválida. \n"
+                 echo -e "\n A opção [ $1 ] é inválida. \n"
                  exit 0   
                 fi
                 ;;

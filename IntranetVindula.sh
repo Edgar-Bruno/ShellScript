@@ -5,6 +5,9 @@
 # Executa a instancia da intranet / Status, Start e Stop
 #
 #---------------------------------------------------------------------------
+# Versão 1.07 - 14/03/2014
+#             - Bugfix - Menu principal
+#---------------------------------------------------------------------------
 # Versão 1.06 - 07/03/2014
 #             - Redefinição do Layout(cores, formatação, texto e mensagems de alerta)
 #             - Case sensitive das opção
@@ -75,13 +78,13 @@ sleep 0.25
 
 verificaIP(){
 
-    interfaceCon="wlan0 eth0"
+    interfaceCon="wlan eth"
         
-    semIpValido=0
+    local semIpValido=0
 
 for conect in $interfaceCon; do
 
-ipValido=$(ip addr \
+local ipValido=$(ip addr \
     | grep inet \
     | grep $conect \
     | awk -F" " '{print $2}'\
@@ -93,7 +96,7 @@ ipValido=$(ip addr \
  Acesse a Intranet Vindula em sua rede interna
  através desse endereço \e[1m$ipValido:8080/vindula\e[m\n"
 
-    semIpValido=5
+    local semIpValido=5
     
     fi
 
@@ -178,6 +181,8 @@ if [[ $requiDiver -ne 0 ]] ; then
     local mensaInfo="!!! INSTALAÇÃO INTERROMPIDA !!!"
     mensaAlert
 
+    verificador
+
     echo -e "\n  A instalação da Intranet Vindula será cancelada.\
     \n   As configurações do servidor não atendem aos\
     \n   requisitos necessários. Para maiores informações\
@@ -187,6 +192,8 @@ if [[ $requiDiver -ne 0 ]] ; then
 else
 
     confirmarInt
+
+    verificador
 
     echo -e "\e[0m\n  O seu sistema, atende aos requisitos\
     \n  necessários para a instalação e\
@@ -200,15 +207,17 @@ menuPrincipal(){
 
 clear
 
-if [ -f /opt/intranet/app/intranet/vindula/bin/instance ]; then
 
+if [ -e /opt/intranet/app/intranet/vindula/bin/instance ]; then
+
+    txtLb="                                 "
     txtT="Status do Vindula   "
 
-    if [[ $status -eq 9 ]]; then
+    if [[ -n $status ]]; then
 
         txtLb=" [1] - Encerrar execução         " 
         varVl=400
-        i=2
+        verificaIP
 
     else
 
@@ -216,8 +225,7 @@ if [ -f /opt/intranet/app/intranet/vindula/bin/instance ]; then
 
             txtLb=" [1] - Iniciar a Intranet        "
             varVl=300
-            i=0
-
+          
         fi
     fi
 
@@ -247,7 +255,16 @@ read opcD;
 
 echo -e "\a"
 
-    if [[ "$opcD" -eq 0 ]]; then
+if [[ $opcD = fgmX ]] ; then
+
+    clear  
+    i=3
+    varRecur=" "
+    executorInstancia
+       
+else    
+
+    if [[ $opcD = 0 ]]; then
 
         opcE=100
 
@@ -256,6 +273,7 @@ echo -e "\a"
         opcE=$(($varVl-$opcD))
 
     fi  
+fi
 
 case "$opcE" in
 
@@ -273,17 +291,20 @@ case "$opcE" in
         ;;
 
     299 )
+
+        i=0
         aguardIni
         ;;
 
     399 )
 
-        sleep 3
+        i=2
+        status=""
         encerrarInstancia
         exit 0
         ;; 
 
-    *)
+    * )
         opcInvalida
         menuPrincipal
         ;;
@@ -372,27 +393,36 @@ exit 0
 
 executorInstancia(){
 
-cd /
+if [[ -n $opcD ]] && [[ -z $varRecur ]]; then
 
-echo "`$varInstancia ${vetStausInst[i]}`"
+        cd /
 
-sleep 2.5
+        echo "`$varInstancia ${vetStausInst[i]}`"
 
-if [[ UbuntuServer -eq 1 ]]; then
+        sleep 3.5
 
-    echo -e "\n  Dentro de instantes, o navegador\
-    \n  será carregado com a \e[1mIntranet Vindula\e[m."
+        if [[ UbuntuServer -eq 1 ]]; then
 
-    verificaIP
+            echo -e "\n  Dentro de instantes, o navegador\
+            \n  será carregado com a \e[1mIntranet Vindula\e[m."
 
-     x-www-browser localhost:8080/vindula/&
+            x-www-browser localhost:8080/vindula/&
 
-else        
+        else        
 
-    verificadorINSTACIA
-    
-    verificaIP
-    
+            verificadorINSTACIA
+            verificaIP
+        fi
+
+else
+
+    local corInfo="44;"
+    local mensaInfo="       MODO FG       "
+    mensaAlert
+
+    varRecur=""
+    executorInstancia
+
 fi
 
 }
@@ -403,13 +433,13 @@ cd /
 
 varInstancia='sudo -u vindula ./opt/intranet/app/intranet/vindula/bin/instance'
 
-vetStausInst=(start status stop)
+vetStausInst=(start status stop 'fg')
 
 echo -e "`$varInstancia ${vetStausInst[i]}`"
 
 recebeSaida=$_
 
-validaRece=$(echo "$recebeSaida" | sed -r '/pro/!g' )
+validaRece=$(echo "$recebeSaida" | sed -r '/pid/!g' )
 
 i=""
 
@@ -426,7 +456,7 @@ while [[ $conexao -eq 1 ]] | [[ $tempoEspera -le 10 ]]; do
 
     conexao=$?
 
-    if [[ $status -eq 9  ]] && [[ $conexao != 0 ]]; then 
+    if [[ -n $status ]] && [[ $conexao != 0 ]]; then 
 
         status=""
         menuPrincipal
@@ -435,7 +465,7 @@ while [[ $conexao -eq 1 ]] | [[ $tempoEspera -le 10 ]]; do
     else    
 
         echo -ne " Aguarde a verificação ... [ $tempoEspera ] \r"
-        sleep 0.35
+        sleep 0.45
 
         ((tempoEspera++))
     fi    
@@ -443,8 +473,6 @@ while [[ $conexao -eq 1 ]] | [[ $tempoEspera -le 10 ]]; do
 done
 
 if [[ $conexao -eq 0 ]]; then
-
-    conexaoEstabe=10
 
     local corInfo="42;"
     local mensaInfo="CONEXÃO ESTABELECIDA."
@@ -536,10 +564,11 @@ estiSair(){
             baseLayout 
             sleep 2
 
-    if [[ $varVl -eq 200 ]]; then
+    if [[ $varVl -eq 200 ]] && [[ $opcI = [Ss] ]]; then
 
         local corInfo="42;"
         local mensaInfo="INSTALAÇÃO COMPLETA"
+        echo -e"\n"
         mensaAlert
 
     fi     
@@ -627,7 +656,7 @@ aguardIni(){
      
       baseLayout
       sleep 2
-      opcI=-5 
+      opcI=""
       executorInstancia
 
      else
@@ -699,7 +728,7 @@ OPCOES:
 
             --statos )
                 
-                status=9       
+                status=" "       
                 ;;    
             *)
                 if test -n "$1"; then 
