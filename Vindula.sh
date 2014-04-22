@@ -3,7 +3,10 @@
 #
 #  Nesse Shell Script, é executado o processo de instalação e/ou execução 
 # da Intranet Vindula.
-#
+#---------------------------------------------------------------------------
+# Versão 1.04 - 21/04/2014
+#			  - Adição de opção a base de dados Vindula 
+#---------------------------------------------------------------------------
 # Versão 1.03 - 07/03/2014
 #			  - Alteração caminho para executar o script IntranetVindula
 #         	  - Atribuição de variavel para "leitura/download"
@@ -29,17 +32,18 @@
 #             - A versão so Instalador está desatualizado!											
 #---------------------------------------------------------------------------
 
-versaoAtual=1.05
+versaoAtual=1.07
 
 cursorVI(){ sleep 0.25; echo -n "   -"; sleep 0.25; echo -n "> "; }
 
 #Nessa variável, é colocado o endereço eletrônico arquivo IntranetVindula.sh
-varHTTP=(ufpr.dl.sourceforge.net/project/vindula/2.0.3/scripts/IntranetVindula.sh)
+varHTTP=(http://vindula.s3-sa-east-1.amazonaws.com/vindula-2.0.3/instalador/IntranetVindula.sh)
 
 nomeArquivoB=$( echo "$varHTTP" \
 				| sed 's:/:\n|:g' \
 				| sed -n '/|/{h;${x;p;};d;};H;${x;p;}'\
 				| sed 's:|:.:g' )
+
 
 local installN=$(dpkg -l | grep curl | wc -l)
 
@@ -185,7 +189,7 @@ atualizaDor(){
 
 	vercionaDor
 	
-	wget -cq "http://$varHTTP" -O /opt/$nomeArquivoB && chmod +x /opt/$nomeArquivoB
+	wget -cq "$varHTTP" -O /opt/$nomeArquivoB && chmod +x /opt/$nomeArquivoB
 
 	local linhaVersoa=$(cat $(basename "$0") \
 		| sed -n '/^versaoAtual/{=;d;}')
@@ -217,9 +221,10 @@ Uso: $(basename "$0") ['OPCOES']
 
 OPCOES:
 
-  -a, --ajuda           - Mostra a ajuda.
+  -a, --ajuda           - Mostra a ajuda e sai.
   -V, --versao          - Mostra a versão do Vindula, habilita atualizações e sai.
       --reinstalar      - Reinstalar a Intranet.
+      --database        - Reinstala a Base de Dados da Intranet.
       --status          - Mostra o Statu da execução da intranet.
 
 "
@@ -229,6 +234,8 @@ OPCOES:
            -a | --ajuda )
                
                 echo -e " $MENSAGEM_USO"
+                exit 0
+                
                 ;;
            -V | --versao )
 
@@ -247,11 +254,17 @@ OPCOES:
 				cd /
 				/opt/"$nomeArquivoB" --statos
 				exit 0
+				;;
+				
+				--database )
+				cd /
+				/opt/"$nomeArquivoB" --dados
+				exit 0
 				;;				
 
             *)
                 if test -n "$1"; then 
-                 echo -e "\n A opção [ $1 ] é inválida. \n"
+                    echo -e "\n A opção [ $1 ] é inválida. \n"
                  exit 0   
                 fi
                 ;;

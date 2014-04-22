@@ -1,9 +1,16 @@
 #!/bin/bash
+#
 #IntranetVindula
 #
 # Instala todos os requisitos necessários da intranet Vindula
 # Executa a instancia da intranet / Status, Start e Stop
 #
+#---------------------------------------------------------------------------
+# Versão 1.08 - 21/04/2014
+#             - Adição de opção a base de dados Vindula(Apenas reinstação) 
+#---------------------------------------------------------------------------
+# Versão 1.07a - 16/04/2014
+#             - Atualização do tar.gz
 #---------------------------------------------------------------------------
 # Versão 1.07 - 14/03/2014
 #             - Bugfix - Menu principal
@@ -169,6 +176,7 @@ else
 
     echo -e "  \e[41;37;1m NO \e[m 64bits ";
 
+    ((requiDiver++))
 fi
 
 }
@@ -176,19 +184,22 @@ fi
 verificadorMsn(){
 
 if [[ $requiDiver -ne 0 ]] ; then
-
+    clear
     local corInfo="41;"
     local mensaInfo="!!! INSTALAÇÃO INTERROMPIDA !!!"
     mensaAlert
 
+    echo -e "\n"
+
     verificador
 
-    echo -e "\n  A instalação da Intranet Vindula será cancelada.\
+    echo -e "\n  A instalação da Intranet Vindula será cancelada.\n\
     \n   As configurações do servidor não atendem aos\
     \n   requisitos necessários. Para maiores informações\
     \n   acesse. \e[1m http://www.vindula.com.br\e[m \n" 
 
     exit 0
+
 else
 
     confirmarInt
@@ -208,7 +219,10 @@ menuPrincipal(){
 clear
 
 
-if [ -e /opt/intranet/app/intranet/vindula/bin/instance ]; then
+if [[ -f /opt/intranet/app/intranet/vindula/bin/instance ]]; then
+
+    checkDB
+    clear
 
     txtLb="                                 "
     txtT="Status do Vindula   "
@@ -316,7 +330,11 @@ opcE=""
 
 instalarVindula(){
 
+useradd vindula
+
 apt-get update
+
+apt-get dist-upgrade
 
 add-apt-repository ppa:libreoffice/ppa 
 
@@ -324,7 +342,7 @@ apt-get -y install mysql-client mysql-server
 
 apt-get -y install curl
 
-vindulaD=`curl -s https://raw2.github.com/vindula/buildout.python/master/dependencias.txt`
+local vindulaD=`curl -s https://raw2.github.com/vindula/buildout.python/master/dependencias.txt`
 
 for inst in $vindulaD; do 
 
@@ -333,6 +351,10 @@ for inst in $vindulaD; do
     if [[ $installN -eq 0 ]]; then  
 
         echo -ne "`apt-get -y install $inst`\r"
+
+    else
+
+        echo -e " $inst - Instalado."
 
     fi
 
@@ -350,7 +372,7 @@ cd /opt/core/python/
 
 python bootstrap.py
 
-easy_install - U distribute
+easy_install -U distribute
 
 ./bin/buildout -vN
 
@@ -371,8 +393,6 @@ cd /opt/intranet/app/intranet/vindula/
 
 ./bin/buildout -vN
 
-useradd vindula
-
 chown -R vindula:vindula /opt/intranet/
 
 }
@@ -388,6 +408,67 @@ sleep 2
 verificadorINSTACIA
 
 exit 0
+
+}
+
+checkDB(){
+
+    local installN=$(dpkg -l | grep mysql-server | wc -l)
+
+    if [[ $installN -eq 0 ]]; then 
+
+        echo -e "\n Seu sistema não está com o MySQL instalado.\n"
+        sleep 2
+
+    else
+    
+        mysql -uvindula -pvindula  -e exit 2> /dev/null
+
+        if [[ $? -eq 0 ]]; then
+
+            local dbA=$(mysql -uvindula -pvindula  -e "SHOW DATABASES LIKE 'vindula_myvindulaDB'")
+            local dbB=$(mysql -uvindula -pvindula  -e "SHOW DATABASES LIKE 'vindula_relstorageDB'")
+            
+            echo -e "\n"
+
+            if [[ -n $dbA ]] && [[ -n $dbB ]] && [[ -z $checkDBpass ]]; then
+
+                    local mensaInfo=" *** ATENÇÃO *** "
+                    local corInfo="44;"
+                    mensaAlert
+
+                    echo -e "\n\n A base de dados da Intranet Vindula está configurada.\n"
+
+            else
+
+                if [[ -f /opt/intranet/app/intranet/vindula/bin/importdb.sh ]]; then
+
+                    local mensaInfo=" *** ATENÇÃO *** "
+                    local corInfo="41;"
+                    mensaAlert
+
+                    echo -e "\n\n A base de dados da Intranet Vindula ainda \e[1mNÃO\e[m está\
+                    \n configurada corretamente."
+
+                    cd /opt/intranet/app/intranet/vindula/bin/
+                    ./importdb.sh
+
+                else
+
+                    local corInfo="42;"
+                    local mensaInfo="  *** Intranet Vindula ***  "
+
+                    mensaAlert
+
+                    echo -e "\n\n A Intranet Vindula não está instalada. Utilize o comando \e[1msudo ./Vindula.sh\e[m\n"
+
+                fi   
+            fi
+        else
+            checkDBpass=" "
+            checkDB
+        fi
+    fi        
 
 }
 
@@ -568,7 +649,9 @@ estiSair(){
 
         local corInfo="42;"
         local mensaInfo="INSTALAÇÃO COMPLETA"
-        echo -e"\n"
+
+        echo -e "\n"
+        
         mensaAlert
 
     fi     
@@ -614,7 +697,7 @@ confirmarInt(){
 
 confirmarIntOPC(){
 
-         cursorVI
+        cursorVI
         read opcI
         echo -e "\a"
 
@@ -696,6 +779,7 @@ OPCOES:
   -V, --versao          - Mostra a versão do programa e sai
   -I, --instalar        - Instalar a Intranet (Reset da Instalação)
       --statos          - Mostra o Statu da execução da intranet.
+      --dados           - reinstação do bando de dados.
 \e[m
 "
         case "$1" in
@@ -729,7 +813,15 @@ OPCOES:
             --statos )
                 
                 status=" "       
-                ;;    
+                ;; 
+
+            --dados)
+
+                checkDB
+
+                exit 0
+
+                ;;   
             *)
                 if test -n "$1"; then 
                     echo -e "\n A opção [ $1 ] é inválida. \n"
