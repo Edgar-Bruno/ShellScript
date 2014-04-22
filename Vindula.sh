@@ -32,7 +32,7 @@
 #             - A versão so Instalador está desatualizado!											
 #---------------------------------------------------------------------------
 
-versaoAtual=1.07a
+versaoAtual=1.07
 
 cursorVI(){ sleep 0.25; echo -n "   -"; sleep 0.25; echo -n "> "; }
 
@@ -193,10 +193,12 @@ atualizaDor(){
 	if [[ -f /opt/"$nomeArquivoB" ]]; then 
 	
 		rm /opt/"$nomeArquivoB"
+
+			sleep 3
 	
 	fi
 
-	wget -cq "$varHTTP" -O /opt/$nomeArquivoB && chmod +x /opt/$nomeArquivoB
+	wget -c -q "$varHTTP" -O /opt/$nomeArquivoB && chmod +x /opt/$nomeArquivoB
 
 	local linhaVersoa=$(cat $(basename "$0") \
 		| sed -n '/^versaoAtual/{=;d;}')
