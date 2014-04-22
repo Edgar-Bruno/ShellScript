@@ -421,23 +421,30 @@ checkDB(){
         sleep 2
 
     else
-    
-        mysql -uvindula -pvindula  -e exit 2> /dev/null
+        
+        if [[ -z $checkDBpass ]]; then
 
-        if [[ $? -eq 0 ]]; then
+            mysql -uvindula -pvindula  -e exit 2> /dev/null
+
+            varMy=$?
+
+        fi
+
+        if [[ $varMy -eq 0 ]]; then
 
             local dbA=$(mysql -uvindula -pvindula  -e "SHOW DATABASES LIKE 'vindula_myvindulaDB'")
             local dbB=$(mysql -uvindula -pvindula  -e "SHOW DATABASES LIKE 'vindula_relstorageDB'")
-            
+                     
             echo -e "\n"
 
             if [[ -n $dbA ]] && [[ -n $dbB ]] && [[ -z $checkDBpass ]]; then
 
-                    local mensaInfo=" *** ATENÇÃO *** "
-                    local corInfo="44;"
-                    mensaAlert
+                local mensaInfo=" *** ATENÇÃO *** "
+                local corInfo="44;"
+                mensaAlert
 
-                    echo -e "\n\n A base de dados da Intranet Vindula está configurada.\n"
+                echo -e "\n\n A base de dados da Intranet Vindula está configurada.\n"
+                sleep 3
 
             else
 
@@ -464,9 +471,14 @@ checkDB(){
 
                 fi   
             fi
+
         else
+
+            varMy=0
             checkDBpass=" "
+
             checkDB
+
         fi
     fi        
 
@@ -649,10 +661,10 @@ estiSair(){
 
         local corInfo="42;"
         local mensaInfo="INSTALAÇÃO COMPLETA"
-      
-        mensaAlert
 
         echo -e "\n"
+        
+        mensaAlert
 
     fi     
 
