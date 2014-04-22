@@ -649,10 +649,10 @@ estiSair(){
 
         local corInfo="42;"
         local mensaInfo="INSTALAÇÃO COMPLETA"
+      
+        mensaAlert
 
         echo -e "\n"
-        
-        mensaAlert
 
     fi     
 
