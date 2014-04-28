@@ -6,8 +6,12 @@
 # Executa a instancia da intranet / Status, Start e Stop
 #
 #---------------------------------------------------------------------------
-# Versão 1.08 - 21/04/2014
+# Versão 1.09 - 27/04/2014
+#             - Atribuido para Ubuntu 14.04 Server 64bits
+#---------------------------------------------------------------------------
+# Versão 1.08a - 21/04/2014
 #             - Adição de opção a base de dados Vindula(Apenas reinstação) 
+#             - Bugfix
 #---------------------------------------------------------------------------
 # Versão 1.07a - 16/04/2014
 #             - Atualização do tar.gz
@@ -122,16 +126,59 @@ done
 
 verificador(){
 
+local sisOp=$(cat /etc/apt/sources.list \
+    | sed -n 's:[^[]*\(\[[^]]*\]\)[^[]*:\1:gp'\
+    | sed 's:(.*)::'\
+    | sed -n 1p)
+
+
+local archteturaSio=$(arch)
+
 requiDiver=0
 
-contador=0
+local contador=0
+
+local requisMin="Ubuntu $releaV Server"
 
 for validaVer in $requisMin; do
 
-    confVers=$(echo "$sisOp" \
+    local confVers=$(echo "$sisOp" \
     | sed -e 's:\('$validaVer'\):(\1):g' \
     | sed -n 's:[^()]*\(([^)]*)\)[^(]*:\1:gp')
+
+if [[ $confVers = "($releaV)" ]] && [[ $varPass -eq 1 ]]; then
+
+    varPassB=" "
+   
+else
+
+    if [[ $varPass -eq 1 ]]; then
+
+        if [[ -z $releaV ]] && [[ -z $varPassB ]]; then
+            
+            releaV=12.04
+            varPass=0
+            verificador
+            break
     
+        elif [[ $releaV = "12.04" ]] && [[ -z $varPassB ]]; then
+            
+            releaV="14.04"
+            varPass=0
+            verificador
+            break
+        
+        else
+
+            varPassB="X"
+
+        fi    
+    fi
+
+fi
+
+((varPass++))
+
         if [[ -n $confVers ]]; then
 
             echo -e "  \e[42;37;1m OK \e[m $validaVer"
@@ -152,6 +199,9 @@ for validaVer in $requisMin; do
 
             ((requiDiver++))    
 
+            if [[  varPassB = "X" ]]; then
+                lsb_release -d 
+            fi    
             echo -e "  \e[41;37;1m NO \e[m $validaVer"
 
             else
@@ -165,8 +215,6 @@ for validaVer in $requisMin; do
 ((contador++))
 
  done
-
-#Verifica arquitetura
 
 if [[ $archteturaSio = x86_64 ]]; then
 
@@ -186,6 +234,8 @@ verificadorMsn(){
 if [[ $requiDiver -ne 0 ]] ; then
     clear
     local corInfo="41;"
+    echo -e "\n"
+
     local mensaInfo="!!! INSTALAÇÃO INTERROMPIDA !!!"
     mensaAlert
 
@@ -265,7 +315,7 @@ fi
 
 cursorVI
 
-read opcD;
+read opcD
 
 echo -e "\a"
 
@@ -284,7 +334,17 @@ else
 
     else
 
-        opcE=$(($varVl-$opcD))
+         if (echo $opcD | egrep '[^0-9]' &> /dev/null)
+
+        then
+
+            opcE=x
+
+        else
+
+            opcE=$(($varVl-$opcD))
+
+        fi
 
     fi  
 fi
@@ -662,9 +722,11 @@ estiSair(){
         local corInfo="42;"
         local mensaInfo="INSTALAÇÃO COMPLETA"
 
-        echo -e "\n"
-        
         mensaAlert
+
+        echo -e "\n"
+
+        cursorVI
 
     fi     
 
@@ -697,7 +759,7 @@ confirmarInt(){
         txtT=" Confirmar Instalação !"
         txtLd="        -*- ATENÇÃO -*-          "
         txtDi="   Antes de instalar o Vindula.  "
-        txtLa=" Para proceguir com a instalação,"
+        txtLa=" Para prosseguir com a instalação,"
         txtLb=" Deseja instalar as dependencias?"   
         txtLc=" [s]- Sim | [n]- Não | [0]- Sair "
 
@@ -770,17 +832,7 @@ aguardIni(){
 
 estiPrinci
 
-#Aqui é capturado e tratado a verão do Ubuntu
-sisOp=$(cat /etc/apt/sources.list \
-    | sed -n 's:[^[]*\(\[[^]]*\]\)[^[]*:\1:gp'\
-    | sed 's:(.*)::'\
-    | sed -n 1p)
-
 i=1
-
-requisMin="Ubuntu 12.04 Server"
-
-archteturaSio=$(arch)
 
 MENSAGEM_USO="
 Uso: $(basename "$0") ['OPCOES']
