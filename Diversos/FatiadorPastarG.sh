@@ -15,6 +15,7 @@ pastaOrigin=$(echo $path | sed 's/^.*\///')
 	# Apenas o nome da pasta
 
 pastaDestinoBase=$(echo $path"_"Fatiado)
+#pastaDestinoBase=$(echo "/media/user/ArquivosR/Recuperados/mp3/mp3_"Fatiado)
 	# Diretório onde será criado subpastas e,  copiado os arquivos da pasta de original
 
 checkArquivosCP=$(echo $pastaDestinoBase"/"$pastaOrigin"_CP.txt")
@@ -23,32 +24,33 @@ checkArquivosCP=$(echo $pastaDestinoBase"/"$pastaOrigin"_CP.txt")
 if [[ ! -d "$pastaDestinoBase" ]]; then
 	# Verifica se a subpasta não exite
 
-	mkdir -pv $pastaDestinoBase # cria a subpasta com o caminho absoluto 
-	echo -e "\n Diretório criado :\n $pastaDestinoBase"
-
+	mkdir -pv "$pastaDestinoBase" # cria a subpasta com o caminho absoluto 
+	# Esse comando cria o diretórimo mesmo com espaços em branco
+	
 fi
 
-if [[ ! -f $checkArquivosCP ]]; then
-	# Verifica se o arquivo de controle existe
+if [[ ! -f "$checkArquivosCP" ]]; then
+	# Verifica se o arquivo de controle existe	
 	
 	for f in *; do
 		# Este for retorna TUDO que existe no diretório pesquisado
-		# Esse comando, trás o nome dos arquivos/diretórios que tenham espaços em branco
+		# Esse comando, trás o nome dos arquivos/diretórios mesmo contendo espaços em branco e/ou caracteres especiais
 		if [[ -f $f ]]; then
 			# Apenas arquivos serão inseridos no arquivo de controle
-			echo ">>> $f\n" >> $checkArquivosCP
+
+			echo ">>> $f\n" >> "$checkArquivosCP"
 			# O nome do arquivo é escrito com marcadores iniciais para posterior alteração após a cópia do mesmo
+	
 		fi
 	done
 else
 	# Verifica se o processamento do arquivo foi concluído
 	echo -e "\nVerificando o arquivo de controle... \n"
 	
-	if [[ -f $(cat $checkArquivosCP | sed '/ -_- Processamento concluído -_- /!d') ]]; then
+	if [[ -f $(cat "$checkArquivosCP" | sed '/ -_- Processamento concluído -_- /!d') ]]; then
 		echo -e " *** Todos os arquivos foram movidos ***\n"
 		exit 0
 	fi
-
 
 fi
 
@@ -58,7 +60,6 @@ dNumero=0
 
 nArquivosMAX=999
  # Limitator de arquivos copiados por pasta
-
 
 arquivoControleContador=0
 
@@ -71,33 +72,31 @@ function leituraARQ()
 
 	if [[ ! -f $checkarquivoControleContador ]]; then
 		
-		arquivoCPLeitura=$(cat $checkArquivosCP | sed '1, 999!d')
+		arquivoCPLeitura=$(cat "$checkArquivosCP" | sed '1, '${nArquivosMAX}'!d')
 		 # Recebe do arquivo de controle N linhas a fim de criar o subarquivo de controle
 
 		checkarquivoControleContador=$(echo $pastaDestinoBase"/"$pastaOrigin"_CP_"$arquivoControleContador".txt")
 			
-		echo "$arquivoCPLeitura" > $checkarquivoControleContador
+		echo "$arquivoCPLeitura" > "$checkarquivoControleContador"
 			recebeSaida=$$
 
-			echo "A Saida ----->>> $recebeSaida"
-			echo "______"$recebeSaida"_______"
-			# read -p "Press any key to continue... " -n1 -s
 			# sed '/^$/d' remove espaços em branco
 			# Cria o novo arquivo delimitado
 
 		echo -e "\nCriando aquivo de controle\n$checkarquivoControleContador\n"
 
 		echo -e "Removendo os nomes dos arquivos da listagem principal\n"
-		sed -i '1, 999d' $checkArquivosCP
+		sed -i '1, '${nArquivosMAX}'d' "$checkArquivosCP"
+		
+		#read -p "Press any key to continue... " -n1 -s
 		
 		leituraARQ
 
 	else
 
 		echo -e " ---- Arquivo de sub leitura existente \n"
-		echo $checkarquivoControleContador
 
-		arquivoCPLeitura=$(cat $checkarquivoControleContador | sed -n '/>>> /p')
+		arquivoCPLeitura=$(cat "$checkarquivoControleContador" | sed -n '/>>> /p')
 
 		if [[ -z $arquivoCPLeitura ]]; then
 
@@ -106,7 +105,7 @@ function leituraARQ()
 				echo " * Fim do processamento "
 				exit 0
 			else
-				recebeSaida=''
+				recebeSaida=
 				(( arquivoControleContador++ ))
 				leituraARQ
 			fi	
@@ -114,16 +113,13 @@ function leituraARQ()
 		
 	fi
 
-	# Verifica se o arquivo de controle existe
-	# arquivoCPLeitura=$(cat $checkArquivosCP | sed -n '/>>> /p')
- 	# Aqui é feita a leitura única do arquivo de controle capturando apenas os nomes de arquivos não movidos
 }
 
 
 function main()
 {
 	arquivoCont=0
-	recebeSaida=''
+	recebeSaida=
 
 	if [[ -z $arquivoCP ]]; then
 		leituraARQ
@@ -162,7 +158,9 @@ function main()
 					
 					eval $(echo "rsync -avhr --progress $(echo -e "\"$path/$arquivoCP\"") $(echo -e "\"$pastaDestinoBase/Fatiado_$dNumero/$arquivoCP\"")")
 					
-					sed -i "s/>>> ${arquivoCP}/\[ OK \] ${arquivoCP}/" $checkarquivoControleContador
+					sed -i "s/>>> ${arquivoCP}/\[ OK \] ${arquivoCP}/" "$checkarquivoControleContador"
+
+					#read -p "Press any key to continue... " -n1 -s
 
 					(( arquivoCont++ ))
 					(( l++ ))
@@ -174,7 +172,7 @@ function main()
 				(( dNumero++ ))
 				
 				local saidaWhile=0
-				arquivoCP=""
+				arquivoCP=
 
 			fi
 
