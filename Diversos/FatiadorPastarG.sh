@@ -18,14 +18,9 @@ function cursorVI()
 
 function montarDiretorios()
 {
-	echo "montarDiretorios_____" $opc
-
-	exit 0
 
 	checkArquivosCP=$(echo $pastaDestinoBase"/"$pastaOrigin"_CP.txt")
 		# Arquivo que conterá todos os arquivos da pasta | Esse, será subdividido e esvaziado
-
-	exit 0
 
 	if [[ ! -d "$pastaDestinoBase" ]]; then
 		# Verifica se a subpasta não exite
@@ -37,7 +32,7 @@ function montarDiretorios()
 
 	if [[ ! -f "$checkArquivosCP" ]]; then
 		# Verifica se o arquivo de controle existe	
-		
+		cd "$path"
 		for f in *; do
 			# Este for retorna TUDO que existe no diretório pesquisado
 			# Esse comando, trás o nome dos arquivos/diretórios mesmo contendo espaços em branco e/ou caracteres especiais
@@ -49,6 +44,7 @@ function montarDiretorios()
 		
 			fi
 		done
+		cd -
 	else
 		# Verifica se o processamento do arquivo foi concluído
 		echo -e "\nVerificando o arquivo de controle... \n"
@@ -221,7 +217,7 @@ function main()
 
 function criarDiretorios()
 {
-	local varDIR
+	local varDIR=
 	cancelVAR=0
 
 	echo -e "\n Agora, digite o caminho absoluto do destino para a fragmentação da pasta\
@@ -260,7 +256,7 @@ function criarDiretorios()
 
 				if [[ $? -eq 0 ]]; then
 					echo -e "\n Pasta criada. \n"
-					pastaDestinoBase=$varDIR
+					pastaDestinoBase="$varDIR"
 					vaux=0
 					break
 				else
@@ -285,9 +281,10 @@ function criarDiretorios()
 	fi
 
 	if [[ vaux -eq 0 ]]; then
-	    echo "AQUI"
+
 		vaux=
 		cancelVAR=
+		paran=
 		definirDiretórios
 	else
 
@@ -317,7 +314,6 @@ function definirDiretórios()
 				# pastaDestinoBase=$(echo "/media/user/ArquivosR/Recuperados/mp3/mp3_"Fatiado)
 				# Diretório onde será criado subpastas e,  copiado os arquivos da pasta de original
 		    
-
 				echo -e "\n  A pasta a ser dividida é onde o\e[1m $(basename "$0")\e[m \
 					 \n está em execução;"
 			else
@@ -375,6 +371,7 @@ function definirDiretórios()
 				if [[  $opc = "CANCELAR" ]]; then
 					cancelVAR=5
 					definirDiretórios
+					
 				else
 		
 					if [[ -d "$opc" ]]; then
@@ -382,16 +379,14 @@ function definirDiretórios()
 					# Altera para o novo caminho absoluto
 						path=$opc
 						echo -e "\n  A pasta \e[1m $path \e[m \
-								 \n é existente.\
-								 \n -------------------------------"
+								 \n é existente."
 						vaux=0
 						break 
-						''
+						
 					else
 						# Pasta inexistente 
 						echo -e "\n  A pasta \e[1m $opc \e[m \
-								 \n não existe.\
-								 \n -------------------------------"
+								 \n não existe."
 						((cancelVAR++))
 						# Limitador de tentativa para inserir um diretório válido
 
@@ -401,7 +396,9 @@ function definirDiretórios()
 								   \n tente mais tarde.\n"
 							definirDiretórios
 						fi
-					fi	
+					fi
+
+					echo "\n -------------------------------"
 				fi
 
 			done
@@ -414,8 +411,6 @@ function definirDiretórios()
 		else
 		# Caso a reposta seja SIM	
 			echo "SIM é essa pasta aí!"
-			paran=
-			cancelVAR=
 			criarDiretorios
 		fi
 
@@ -435,7 +430,6 @@ OPÇÕES:
 
 Esse Shell Script é, dividir uma pasta com muitíssimos aquivos\
 em, diversas pastas com a quantidade de arquivos pré-definidos.
-
 
 \e[1m
   -h, --help            - Mostra a ajuda de utilização
