@@ -1,0 +1,88 @@
+Rascunhos Shell Script
+
+c=1
+echo "===================================================================="
+#echo -e `ls /media/edgarbruno/WInchester_Recover/output_Sat_Jan_28_19_27_12_2017/jpg/`
+
+#lista=$(echo -e `ls /home/edgarbruno/Pictures/Photo`)
+
+echo $lista
+
+echo "===================================================================="
+
+#while [ $c -le 1 ]
+#do
+#	echo "Welcone $c times"
+#	(( c++ ))
+#done
+
+caminhoArquivos=/home/edgarbruno/Pictures/Photo
+
+#cat log | cut -d '`' -f 3 | sed -s "s/'//" >> list_arq
+arquivos=""
+
+
+
+for i in $arx; do
+	# arquivos=$(echo "$arquivos $i") #Auto incremento
+	if [[ $i = ' ' ]]; then
+		echo "AQUI "
+	fi
+done
+
+echo $arquivos
+
+# Alguns comandos
+
+
+# Comando para listar apenas diretórios
+$ ls -d */
+
+# Comando para listar apenas arquivos
+$ ls -p | grep -v / 
+
+# Expressão regular para listar apenas arquivos
+$ ls -al | grep '^-' 
+
+
+==================================================================================
+
+xx="/home/edgarbruno/Workspace/ShellScript/Diversos/Kubo e as Cordas Mágicas 1080p (2017) Dublado BluRay -- By - Lucas Firmo.mp4"
+
+z=""
+
+for i in *; do
+	echo "----- >>>> "$i
+
+	z+=$"%s" $i 
+
+done
+
+echo "==================================="
+echo $z
+echo "==================================="
+
+if [[ ! -f $xx ]]; then
+	# Verifica se o arquivo de controle existe
+	echo " NÃo Existe *********************************"
+	
+else
+
+	echo "Sim, Existe"
+
+fi
+
+
+echo "!!!!!!!!!!!!!!!!!!!!!!"
+zz=$(echo -e $catT | sed -n '/ ->> /p')
+
+#echo -e "echo $catT | `sed '1!d'`"
+echo "!!!!!!!!!!!!!!!!!!!!!!"
+
+
+echo "-----------------"
+echo $pastaOrigin
+echo $path
+echo $pastaDestinoBase
+echo $checkArquivosCP
+echo "-----------------"

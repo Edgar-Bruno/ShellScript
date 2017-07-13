@@ -65,7 +65,7 @@ mensaAlert(){
 
 local y=""
 local x=""
-
+while [[ $cancelVAR -eq 3 ]]; d
 while [[ y -lt 6 ]]; do
 
     if [[ x -gt 1 ]]; then
@@ -75,15 +75,15 @@ while [[ y -lt 6 ]]; do
         coAle="$corInfo"
     fi
     
-echo -ne "  \e[${coAle}37;1m       $mensaInfo       \e[m\r"
+    echo -ne "  \e[${coAle}37;1m       $mensaInfo       \e[m\r"
 
-sleep 0.25
+    sleep 0.25
 
-((x++))
+    ((x++))
 
-((y++))
+    ((y++))
 
- done
+done
 
 }
 
