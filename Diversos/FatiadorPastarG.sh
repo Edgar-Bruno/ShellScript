@@ -9,9 +9,9 @@
 
 function cursorVI()
 {
-	sleep 0.25
+	sleep 0.15
 	echo -n "  -"
-	sleep 0.25
+	sleep 0.15
 	echo -n "> "
 	read opc
 }
@@ -218,11 +218,18 @@ function main()
 function criarDiretorios()
 {
 	local varDIR=
-	cancelVAR=0
 
-	echo -e "\n Agora, digite o caminho absoluto do destino para a fragmentação da pasta\
-			 \n \e[1m $path \e[m \n \
-			 \n Para interromper, digite CANCELAR"
+	if [[ cancelVAR -eq 0 ]]; then
+
+		echo -e "\n Agora, digite o caminho absoluto do destino para a fragmentação da pasta\
+				 \n \e[1m $path \e[m \n"
+	else
+
+		echo -e "\e[1m $varDIR \e[m \
+				 \n Digite um caminho valido."
+	fi
+
+	echo -e  "\n Para interromper, digite CANCELAR"
 									
 	cursorVI
 
@@ -242,41 +249,44 @@ function criarDiretorios()
 		vaux=0
 	else
 	# Pasta inexistente 
-	
-		while [[ cancelVAR -lt 3 ]]; do
-			echo -e "\n  A pasta \e[1m $varDIR \e[m \
-			  	     \n não existe. Deseja cria-la?.\
-					 \n [C] - Confirmar | Precione qualquer tecla para cancelar."
+		echo -e "\n  A pasta \e[1m $varDIR \e[m \
+		 	     \n não existe. Deseja cria-la?.\
+				 \n [C] - Confirmar | Precione qualquer tecla para cancelar."
 			
-			cursorVI
+		cursorVI
 			
-			if [[ $opc = "C" ]]; then
+		if [[ $opc = "C" ]]; then
 
-				mkdir -pv "$varDIR"
+		mkdir -pv "$varDIR"
 
-				if [[ $? -eq 0 ]]; then
-					echo -e "\n Pasta criada. \n"
-					pastaDestinoBase="$varDIR"
-					vaux=0
-					break
-				else
-					((cancelVAR++))
-					echo -e "\n Não foi possivel criar a pasta. Tente outo endereço.\n"
-					if [[ cancelVAR -eq 3 ]]; then
-						echo -e " Número de tentativas excedido.\
-								\n Verifique se o caminho absoluto está correto e,\
-								\n tente mais tarde.\n"
-						definirDiretórios
-					fi
-				fi
+			if [[ $? -eq 0 ]]; then
+				echo -e "\n Pasta criada. \n"
+				pastaDestinoBase="$varDIR"
+				vaux=0
+				
 			else
-			# Cancela a operação
-			 echo "Cancelado pelo usuário"
+				
+				opc=
+				((cancelVAR++))
+
+				echo -e "\n Não foi possivel criar a pasta. Verifique o endereço de destino."
+
+				if [[ cancelVAR -eq 3 ]]; then
+					echo -e " Número de tentativas excedido.\
+							\n Verifique se o caminho absoluto está correto e,\
+							\n tente mais tarde.\n"
+					definirDiretórios
+				fi
+
+				criarDiretorios
+			fi
+		else
+		# Cancela a operação
+			 echo -e "\n Cancelado pelo usuário"
 			 cancelVAR=5
 			 vaux="x"
 
-			fi
-		done
+		fi
 
 	fi
 
@@ -285,11 +295,9 @@ function criarDiretorios()
 		vaux=
 		cancelVAR=
 		paran=
-		definirDiretórios
-	else
-
-		definirDiretórios
 	fi
+
+	definirDiretórios
 
 }
 
@@ -371,7 +379,7 @@ function definirDiretórios()
 				if [[  $opc = "CANCELAR" ]]; then
 					cancelVAR=5
 					definirDiretórios
-					
+
 				else
 		
 					if [[ -d "$opc" ]]; then
@@ -398,19 +406,19 @@ function definirDiretórios()
 						fi
 					fi
 
-					echo "\n -------------------------------"
+					echo -e "\n -------------------------------"
 				fi
 
 			done
 
 			if [[ vaux -eq 0 ]]; then
 				vaux=
+				cancelVAR=0
 				criarDiretorios
 			fi
 
 		else
 		# Caso a reposta seja SIM	
-			echo "SIM é essa pasta aí!"
 			criarDiretorios
 		fi
 
