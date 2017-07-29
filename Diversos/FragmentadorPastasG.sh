@@ -18,27 +18,294 @@ function cursorVI()
 	read opc
 }
 
-function montarDiretorios()
+function mensaAlert()
 {
 
-	checkArquivosCP=$(echo $pastaDestinoBase"/"$pastaOrigin"_CP.txt")
-		# Arquivo que conterá todos os arquivos da pasta | Esse, será subdividido e esvaziado
+	local y=""
+	local x=""
 
-	if [[ ! -d "$pastaDestinoBase" ]]; then
-		# Verifica se a subpasta não exite
+	while [[ y -lt 6 ]]; do
 
-		mkdir -pv "$pastaDestinoBase" # cria a subpasta com o caminho absoluto 
-		# Esse comando cria o diretórimo mesmo com espaços em branco
+	    if [[ x -gt 1 ]]; then
+	        x=0
+	        coAle="40;"
+	    else
+	        coAle="$corInfo"
+	    fi
+	    
+		echo -ne "  \e[${coAle}37;1m       $mensaInfo       \e[m\r"
+
+		sleep 0.15
+
+		((x++))
+
+		((y++))
+
+	 done
+
+}
+
+function main()
+{
+	arquivoCont=0
+	recebeSaida=
+
+	if [[ -z $arquivoCP ]]; then
+		leituraARQ
+		arquivoCP="Null"
+		# String com o nome do arquivo
+		l=1
+		# Linha do arquivo de controle aonde o arquivo está
+	fi
+
+	while [[ ! -z $arquivoCP ]]
+
+		do
+			arquivoCP=$(echo -e $arquivoCPLeitura \
+						| sed -e ''$l'!d' \
+						| sed 's/>>> //' \
+						| sed 's/^ \+//')
+
+			# sed -e ''$l'!d' -> Retorna a linha selecionada
+			# sed 's/>>> //'  -> "Apaga" os caracteres de controle
+			# sed 's/^ \+//'  -> Remove o espaço em branco no final da string
+
+			if [[ ! -d "$pastaDestinoBase/Fragmentado_$dNumero" ]]; then
+				# Verifica se a subpasta não exite
+				mkdir -pv "$pastaDestinoBase/Fragmentado_$dNumero"
+				
+			else
+
+				if [[ $arquivoCont -eq 0 ]]; then
+					arquivoCont=$(ls -l "$pastaDestinoBase/Fragmentado_$dNumero" | grep ^- | wc -l)
+					# Comando que retorna a quantidade de arquivos de uma pasta
+				fi
+			fi
+
+			if [[ $arquivoCont -le $nArquivosMAX ]]; then
+				if [[ ! -z "$arquivoCP" ]] ; then
+					
+					eval $(echo "rsync -avhr --progress $(echo -e "\"$path/$arquivoCP\"") $(echo -e "\"$pastaDestinoBase/Fragmentado_$dNumero/$arquivoCP\"")")
+					
+					sed -i "s/>>> ${arquivoCP}/\[ OK \] ${arquivoCP}/" "$checkarquivoControleContador"
+
+					#read -p "Press any key to continue... " -n1 -s
+
+					(( arquivoCont++ ))
+					(( l++ ))
+					# Auto increment da variável para a definição da linha a ser lida do arquivo de controle
+				fi
+		
+			else
+
+				(( dNumero++ ))
+				
+				local saidaWhile=0
+				arquivoCP=
+
+			fi
+
+	done
+
+	if [[ $saidaWhile -eq 0 ]]; then
+		main
+	fi
+
+	leituraEscrita=1
+	verificadorBOeD
+	# Apagar os marcadores
+}
+
+function leituraARQ()
+{
+	# Funcao para verificar e criar subdivisões do arquivo de controle
+	
+	checkarquivoControleContador=$(echo $pastaDestinoBase"/"$pastaOrigin"_CP_"$arquivoControleContador".txt")
+	# Cria caminho completo da subdivisão do primeiro arquivo
+
+	if [[ ! -f $checkarquivoControleContador ]]; then
+		
+		arquivoCPLeitura=$(cat "$checkArquivosCP" | sed '1, '${nArquivosMAX}'!d')
+		 # Recebe do arquivo de controle N linhas a fim de criar o subarquivo de controle
+
+		checkarquivoControleContador=$(echo $pastaDestinoBase"/"$pastaOrigin"_CP_"$arquivoControleContador".txt")
+			
+		echo "$arquivoCPLeitura" > "$checkarquivoControleContador"
+			recebeSaida=$$
+
+			# sed '/^$/d' remove espaços em branco
+			# Cria o novo arquivo delimitado
+
+		echo -e "\nCriando aquivo de controle\n$checkarquivoControleContador\n"
+
+		echo -e "Removendo os nomes dos arquivos da listagem principal\n"
+		sed -i '1, '${nArquivosMAX}'d' "$checkArquivosCP"
+		
+		#read -p "Press any key to continue... " -n1 -s
+		
+		leituraARQ
+
+	else
+
+		echo -e " ---- Arquivo de sub leitura existente \n"
+
+		arquivoCPLeitura=$(cat "$checkarquivoControleContador" | sed -n '/>>> /p')
+
+		if [[ -z $arquivoCPLeitura ]]; then
+
+			echo " * Leitura sem resultados"
+			if [[ ! -z $recebeSaida ]]; then
+				echo " * Fim do processamento "
+				exit 0
+			else
+				recebeSaida=
+				(( arquivoControleContador++ ))
+				leituraARQ
+			fi	
+		fi
 		
 	fi
 
+}
+
+function verificadorBOeD()
+# Função responsavel por verificar se a execulção do script ocorreu sem erros.
+# Há dois marcadores nesse arquivo; Borigen e Bdestin
+
+{
+	opc=19
+	# Variavel responsavel pelo fluxo
+
+	# ARRAY
+	local listOD=(Borigem Bdestin)
+	# Marcadores dos backups dos endereços de Origem e Destino
+
+	local listVar=(OrigT DestT)
+	# Lista de variaveis temporárias que recebem os endereços de Origem e Destino
+
+	local listPaths=(path pastaDestinoBase)
+	# Lista das variável principais.
+	# Lista com os endereços de Origem e Destino
+
+	local x=0
+	local varR=2
+
+	# leituraEscrita=0
+	# leituraEscrita=0 Verificação padrão dos marcadores de Backups de endereços. O padrão é, marcadores VAZIOS
+	# leituraEscrita=1 Verificação dos endereços nos marcadores de Backups para APAGAR/ESCREVER
+
+	for i in ${listOD[@]};do
+        
+        eval "${listVar[x]}=\"$(sed -n '/'$i'/h;${x;p;}; ' "$pathBasename" | sed 's/'$i'//;s/^ //;s/ *$//')\"" 
+
+        if [[ $leituraEscrita -eq 0 ]]; then
+            # Verifica se os endereços de backups de Origem e Destino estão preencidos no marcadores
+            
+            if [[ ! -z ${!listVar[x]} ]]; then
+                # Execuçao do script terminada inesperadamente e deve ser verificado
+                echo -e "Marcador \e[1m$i\e[m preencido = Padrão inesperadamente"
+
+                if [[ -d "${!listVar[x]}" ]]; then
+
+				    corInfo="42;"
+					mensaInfo="!!! Última execulção terminada inesperadamente !!!"
+                    # Verifica se o caminho encontrado existe - SIM = Marcadores MANTIDOS
+                    eval "${listPaths[x]}='${!listVar[x]}'"
+                    # Atribui o valor encontrado no Marcado nas variável principais.
+                    echo -e "Pasta existente\
+                            \n \e[1m ${!listVar[x]}\e[m"
+                    ((opc++))
+                    ((varR--))
+                    vaux=5
+                else
+                    # Verifica se o caminho encontrado existe - NÂO = Marcadores APAGADOS
+                    echo -e "Pasta NÃO ENCONTRADA\
+                            \n \e[1m ${!listVar[x]}\e[m"
+                    ((varR++))
+                fi
+
+                 # Regra para a opção correta
+                if [[ $opc -eq 21 ]]; then
+                    paran=
+                    cancelVAR=
+                fi
+
+            else
+                # Marcador vazio = Padrão satisfeito
+                echo -e "Marcador \e[1m$i\e[m vazio = Padrão esperado"
+                # echo "IS NULL ------> [${listVar[x]}]"
+                if [[ $varR -eq 2 ]]; then
+                	varR=0
+                	opc=
+                fi
+            fi
+
+        else
+ 
+            varR=0
+            # Apaga ou esqueve nos marcadores dos endereços de backups de Origem e Destino
+
+            if [[ -z ${!listVar[x]} ]]; then
+                # Escreve os marcadores de backups de Origem e Destino
+                # ESCREVE
+
+                echo "ESCREVE ... "
+                echo "IS NULL  ------>" #[${!listPaths[x]}]
+                echo "$(sed ':a;$!{N;ba;};s|\(.*\)'$i'|\1'$i' '"${!listPaths[x]}"'|' < "$pathBasename")" > "$pathBasename" #----> Escrever OK
+                # Substituir a última ocorrência de uma string por outra 
+
+            else
+
+                # Paga os marcadores de backups de Origem e Destino
+                # APAGA
+
+                echo "APAGA ... $i"
+                echo "NOT NULL ------> " #[${!listVar[x]}]
+                # echo "$(sed ':a;$!{N;ba;};s|\(.*\)'$i' '"${!listVar[x]}"'|\1'$i'|' < "$pathBasename")" > "$pathBasename" #----> Pagar OK
+                echo "$(sed 's/^'$i'.*/'$i'/' < "$pathBasename")" > "$pathBasename"
+                # Apaga TUDO que estiver após o marcador não, o endereço já existente
+
+            fi
+        fi
+        ((x++))
+        # Enumeração forçada
+        # read -p "Press any key to continue... $varR" -n1 -s
+    done
+
+	# !!! CASO OCORRA UMA FALHA ONDE APENAS UM DOS MARCADORES ESTÁ PREENCHIDO, AMBOS SERÃO APAGADOS
+	if [[ $varR -gt 0 ]]; then
+        leituraEscrita=1
+        verificadorBOeD
+        opc=
+    fi
+}
+
+function montarDiretorios()
+{	
+	# Montar diretórios
+	pastaOrigin=$(echo $path | sed 's/^.*\///')
+	# Apenas o nome da pasta
+
+	checkArquivosCP=$(echo $pastaDestinoBase"/"$pastaOrigin"_CP.txt")
+	# Arquivo que conterá todos os arquivos da pasta | Esse, será subdividido e esvaziado
+
+	echo "montarDiretorios"
+	
+	if [[ -z $vaux ]];then
+		# Regra para manter os registros dos marcadores
+		echo "Marcadores PREENCIDOS ------ $vaux"
+		leituraEscrita=1
+		verificadorBOeD
+	fi
+
+	exit 0
+
+	
 	if [[ ! -f "$checkArquivosCP" ]]; then
 		# Verifica se o arquivo de controle existe	
 		local x=0
 		local y=0
 		cd "$path"
-
-
 
 		for f in *; do
 			# Este for retorna TUDO que existe no diretório pesquisado
@@ -108,318 +375,111 @@ function montarDiretorios()
 	main
 }
 
-function leituraARQ()
-{
-	# Funcao para verificar e criar subdivisões do arquivo de controle
-	
-	checkarquivoControleContador=$(echo $pastaDestinoBase"/"$pastaOrigin"_CP_"$arquivoControleContador".txt")
-	# Cria caminho completo da subdivisão do primeiro arquivo
-
-	if [[ ! -f $checkarquivoControleContador ]]; then
-		
-		arquivoCPLeitura=$(cat "$checkArquivosCP" | sed '1, '${nArquivosMAX}'!d')
-		 # Recebe do arquivo de controle N linhas a fim de criar o subarquivo de controle
-
-		checkarquivoControleContador=$(echo $pastaDestinoBase"/"$pastaOrigin"_CP_"$arquivoControleContador".txt")
-			
-		echo "$arquivoCPLeitura" > "$checkarquivoControleContador"
-			recebeSaida=$$
-
-			# sed '/^$/d' remove espaços em branco
-			# Cria o novo arquivo delimitado
-
-		echo -e "\nCriando aquivo de controle\n$checkarquivoControleContador\n"
-
-		echo -e "Removendo os nomes dos arquivos da listagem principal\n"
-		sed -i '1, '${nArquivosMAX}'d' "$checkArquivosCP"
-		
-		#read -p "Press any key to continue... " -n1 -s
-		
-		leituraARQ
-
-	else
-
-		echo -e " ---- Arquivo de sub leitura existente \n"
-
-		arquivoCPLeitura=$(cat "$checkarquivoControleContador" | sed -n '/>>> /p')
-
-		if [[ -z $arquivoCPLeitura ]]; then
-
-			echo " * Leitura sem resultados"
-			if [[ ! -z $recebeSaida ]]; then
-				echo " * Fim do processamento "
-				exit 0
-			else
-				recebeSaida=
-				(( arquivoControleContador++ ))
-				leituraARQ
-			fi	
-		fi
-		
-	fi
-
-}
-
-function mensaAlert()
-{
-
-	local y=""
-	local x=""
-
-	while [[ y -lt 6 ]]; do
-
-	    if [[ x -gt 1 ]]; then
-	        x=0
-	        coAle="40;"
-	    else
-	        coAle="$corInfo"
-	    fi
-	    
-		echo -ne "  \e[${coAle}37;1m       $mensaInfo       \e[m\r"
-
-		sleep 0.15
-
-		((x++))
-
-		((y++))
-
-	 done
-
-}
-
-
-function main()
-{
-	arquivoCont=0
-	recebeSaida=
-
-	if [[ -z $arquivoCP ]]; then
-		leituraARQ
-		arquivoCP="Null"
-		# String com o nome do arquivo
-		l=1
-		# Linha do arquivo de controle aonde o arquivo está
-	fi
-
-	while [[ ! -z $arquivoCP ]]
-
-		do
-			arquivoCP=$(echo -e $arquivoCPLeitura \
-						| sed -e ''$l'!d' \
-						| sed 's/>>> //' \
-						| sed 's/^ \+//')
-
-			# sed -e ''$l'!d' -> Retorna a linha selecionada
-			# sed 's/>>> //'  -> "Apaga" os caracteres de controle
-			# sed 's/^ \+//'  -> Remove o espaço em branco no final da string
-
-			if [[ ! -d "$pastaDestinoBase/Fragmentado_$dNumero" ]]; then
-				# Verifica se a subpasta não exite
-				mkdir -pv "$pastaDestinoBase/Fragmentado_$dNumero"
-				
-			else
-
-				if [[ $arquivoCont -eq 0 ]]; then
-					arquivoCont=$(ls -l "$pastaDestinoBase/Fragmentado_$dNumero" | grep ^- | wc -l)
-					# Comando que retorna a quantidade de arquivos de uma pasta
-				fi
-			fi
-
-			if [[ $arquivoCont -le $nArquivosMAX ]]; then
-				if [[ ! -z "$arquivoCP" ]] ; then
-					
-					eval $(echo "rsync -avhr --progress $(echo -e "\"$path/$arquivoCP\"") $(echo -e "\"$pastaDestinoBase/Fragmentado_$dNumero/$arquivoCP\"")")
-					
-					sed -i "s/>>> ${arquivoCP}/\[ OK \] ${arquivoCP}/" "$checkarquivoControleContador"
-
-					#read -p "Press any key to continue... " -n1 -s
-
-					(( arquivoCont++ ))
-					(( l++ ))
-					# Auto increment da variável para a definição da linha a ser lida do arquivo de controle
-				fi
-		
-			else
-
-				(( dNumero++ ))
-				
-				local saidaWhile=0
-				arquivoCP=
-
-			fi
-
-	done
-
-	if [[ $saidaWhile -eq 0 ]]; then
-		main
-	fi
-}
-
 function criarDiretorios()
 {
-	local varDIR=
+	if [[ $criarDire -eq 0 ]]; then
+		# --------- Caso o script tenha sido executado sem parametros
+		if [[ ! -d "$pastaDestinoBase" ]]; then
+			# Verifica se a subpasta não exite
 
-	if [[ cancelVAR -eq 0 ]]; then
+			mkdir -pv "$pastaDestinoBase" # cria a subpasta com o caminho absoluto 
+			# Esse comando cria o diretórimo mesmo com espaços em branco
+			
+		fi
 
-		echo -e "\n Agora, digite o caminho absoluto do destino para a fragmentação da pasta\
-				 \n \e[1m $path \e[m \n"
 	else
 
-		echo -e "\e[1m $varDIR \e[m \
-				 \n Digite um caminho valido."
-	fi
+		local varDIR=
 
-	echo -e  "\n Para interromper, digite CANCELAR"
-									
-	cursorVI
+		if [[ cancelVAR -eq 0 ]]; then
 
-	varDIR=$opc
-
-	if [[  $opc = "CANCELAR" ]]; then
-			cancelVAR=5
-			definirDiretórios
-	
-	elif [[ -d "$opc" ]]; then
-	# Verifica se a pasta é existente
-	# Altera para o novo caminho absoluto
-		pastaDestinoBase=$varDIR
-		echo -e "\n  A pasta \e[1m $path \e[m \
-				 \n é existente.\
-				 \n -------------------------------"
-		vaux=0
-	else
-	# Pasta inexistente 
-		echo -e "\n  A pasta \e[1m $varDIR \e[m \
-		 	     \n não existe. Deseja cria-la?.\
-				 \n [C] - Confirmar | Precione qualquer tecla para cancelar."
-			
-		cursorVI
-			
-		if [[ $opc = "C" ]]; then
-
-		mkdir -pv "$varDIR"
-
-			if [[ $? -eq 0 ]]; then
-				echo -e "\n Pasta criada. \n"
-				pastaDestinoBase="$varDIR"
-				vaux=0
-				
-			else
-				
-				opc=
-				((cancelVAR++))
-
-				echo -e "\n Não foi possivel criar a pasta. Verifique o endereço de destino."
-
-				if [[ cancelVAR -eq 3 ]]; then
-					echo -e " Número de tentativas excedido.\
-							\n Verifique se o caminho absoluto está correto e,\
-							\n tente mais tarde.\n"
-					definirDiretórios
-				fi
-
-				criarDiretorios
-			fi
+			echo -e "\n Agora, digite o caminho absoluto do destino para a fragmentação da pasta\
+					 \n \e[1m $path \e[m \n"
 		else
-		# Cancela a operação
-			 echo -e "\n Cancelado pelo usuário"
-			 cancelVAR=5
-			 vaux="x"
+
+			echo -e "\e[1m $varDIR \e[m \
+					 \n Digite um caminho valido."
+		fi
+
+		echo -e  "\n Para interromper, digite CANCELAR"
+										
+		cursorVI
+
+		varDIR=$opc
+
+		if [[  $opc = "CANCELAR" ]]; then
+				cancelVAR=5
+				definirDiretórios
+		
+		elif [[ -d "$opc" ]]; then
+		# Verifica se a pasta é existente
+		# Altera para o novo caminho absoluto
+			pastaDestinoBase=$varDIR
+			echo -e "\n  A pasta \e[1m $path \e[m \
+					 \n é existente.\
+					 \n -------------------------------"
+			vaux=0
+		else
+		# Pasta inexistente 
+			echo -e "\n  A pasta \e[1m $varDIR \e[m \
+			 	     \n não existe. Deseja cria-la?.\
+					 \n [C] - Confirmar | $opcT"
+				
+			cursorVI
+				
+			if [[ $opc = "C" ]]; then
+
+			mkdir -pv "$varDIR"
+
+				if [[ $? -eq 0 ]]; then
+					echo -e "\n Pasta criada. \n"
+					pastaDestinoBase="$varDIR"
+					vaux=0
+					
+				else
+					
+					opc=
+					((cancelVAR++))
+
+					echo -e "\n Não foi possivel criar a pasta. Verifique o endereço de destino."
+
+					if [[ cancelVAR -eq 3 ]]; then
+						echo -e " Número de tentativas excedido.\
+								\n Verifique se o caminho absoluto está correto e,\
+								\n tente mais tarde.\n"
+						definirDiretórios
+					fi
+
+					criarDiretorios
+				fi
+			else
+			# Cancela a operação
+				 echo -e "\n Cancelado pelo usuário"
+				 cancelVAR=5
+				 vaux=3
+
+			fi
 
 		fi
 
+		if [[ vaux -eq 0 ]]; then
+
+			vaux=
+			cancelVAR=
+			paran=
+		fi
+
+		definirDiretórios
 	fi
-
-	if [[ vaux -eq 0 ]]; then
-
-		vaux=
-		cancelVAR=
-		paran=
-	fi
-
-	definirDiretórios
-
-}
-
-function verificadorBOeD()
-# Função responsavel por verificar se a execulção do script ocorreu sem erros.
-# Há dois marcadores nesse arquivo; Borigen e Bdestin
-
-{
-	# ARRAY
-	local listOD=(Borigem Bdestin)
-	# Marcadores dos backups dos endereços de Origem e Destino
-
-	local listVar=(OrigT DestT)
-	# Lista de variaveis temporárias que recebem os endereços de Origem e Destino
-
-	local listPaths=(path pastaDestinoBase)
-	# Lista das variável principais.
-	# Lista com os endereços de Origem e Destino
-
-	local x=0
-
-	# leituraEscrita=0
-	# leituraEscrita=0 Verificação padrão dos marcadores de Backups de endereços. O padrão é, marcadores VAZIOS
-	# leituraEscrita=1 Verificação dos marcadores de Backups de endereços a fim de
-
-	for i in ${listOD[@]};do
-	    
-	    eval "${listVar[x]}=\"$(sed -n '/'$i'/h;${x;p;}; ' "$pathBasename" | sed 's/'$i'//;s/^ //;s/ *$//')\"" 
-
-	    if [[ $leituraEscrita -eq 0 ]]; then
-	        # Verifica se os endereços de backups de Origem e Destino estão preencidos no marcadores
-	        # echo "i --- $i"
-	        if [[ ! -z ${!listVar[x]} ]]; then
-	            # Execuçao do script terminada inesperadamente e deve ser verificado
-	            echo "NOT NULL  ------> [${!listVar[x]}]"
-
-	            
-	        else
-	            # Marcador vazio = Padrão satisfeito
-	            echo "IS NULL ------> [${!listVar[x]}]"
-	        fi
-
-	    else
-	        # Apaga ou esqueve nos marcadores dos endereços de backups de Origem e Destino
-
-	        if [[ -z ${!listVar[x]} ]]; then
-	            # Escreve os marcadores de backups de Origem e Destino
-	            # ESCREVE
-
-	            echo "WRITE ... "
-	            echo "IS NULL  ------> [${!listVar[x]}]"
-	            echo "$(sed ':a;$!{N;ba;};s|\(.*\)'$i'|\1'$i' '"${!listPaths[x]}"'|' < "$pathBasename")" > "$pathBasename" #----> Escrever OK
-	            # Substituir a última ocorrência de uma string por outra
-
-
-	        else
-
-	            # Paga os marcadores de backups de Origem e Destino
-	            # APAGA
-
-	            echo "ERASE ... $i"
-	            echo "NOT NULL ------> [${!listVar[x]}]"
-	            # echo "$(sed ':a;$!{N;ba;};s|\(.*\)'$i' '"${!listVar[x]}"'|\1'$i'|' < "$pathBasename")" > "$pathBasename" #----> Pagar OK
-	            echo "$(sed 's/^'$i'.*/'$i'/' < "$pathBasename")" > "$pathBasename" #----> Pagar ATUALIZADO
-	        fi
-	        
-	    fi
-	    ((x++))
-	    # Enumeração forçada
-	done
-
-	# !!! CASO OCORRA UMA FALHA ONDE APENAS UM DOS MARCADORES ESTÁ PREENCHIDO, AMBOS SERÃO APAGADOS
-	# CRIAR CONDIÇÃO AQUI
-
 }
 
 function definirDiretórios()
 # Função responsavel por definir os diretórios de origem e destino
 {
+	local opcT="Precione qualquer tecla para cancelar."
 
 	if [[ -z $cancelVAR ]]; then
-		# Controle de recurcividade
+		# Controle de recursividade
 		clear
 		
 		mensaAlert
@@ -429,7 +489,6 @@ function definirDiretórios()
 			if [[ -z $opc ]]; then
 				# Executado sem passagem de parametros	
 
-
 			    path=$(pwd)
 			    # Caminho absoluto da pasta com muitíssimos arquivos
 
@@ -437,13 +496,15 @@ function definirDiretórios()
 				# pastaDestinoBase=$(echo "/media/user/ArquivosR/Recuperados/mp3/mp3_"Fragmentado)
 				# Diretório onde será criado subpastas e,  copiado os arquivos da pasta de original
 		    
-				echo -e "\n  A pasta a ser dividida é onde o\e[1m $(basename "$0")\e[m \
+				echo -e "\n  A pasta a ser dividida é onde o \e[1m$(basename "$0")\e[m \
 					 \n está em execução;"
 
-			elif [[ $opc -eq 21 ]]; then
+			elif [[ $opc = "21" ]]; then
 				# Caso os marcadores estejam preenchidos e validos
-				echo -e "\n A execução do $(basename "$0") terminada inesperadamente. \
-						 \n Deseja que o script continue com os caminhos da última execução?"
+				echo -e "\n A última execução do \e[1m$(basename "$0")\e[m foi terminada \
+						 \n inesperadamente. \
+						 \n Deseja que o script continue de onde parou?"
+				# criarDire=0
 
 			else
 				# Pastas definidas manualmente
@@ -451,20 +512,25 @@ function definirDiretórios()
 
 		    fi
 
-			pastaOrigin=$(echo $path | sed 's/^.*\///')
-			# Apenas o nome da pasta
-		    
 		    echo -e "\n origem  \e[1m $path \e[m\
 					 \n destino \e[1m $pastaDestinoBase \e[m \n \
-					 \n Os caminhos estão corretos?\
-					 \n [C] - Confirmar | Precione qualquer tecla para cancelar."
-			exit 0
+					 \n Os caminhos estão corretos?"
+
+			if [[ $opc = "21" ]];then
+
+				echo -e "\n [C] - Confirmar | [N] - Não | $opcT"
+
+			else
+
+				echo -e "\n [C] - Confirmar | $opcT"
+
+				# Cria diretório quando é executado o script sem passar paramentos
+			fi
 
 		else
-
 			echo -e "\n  Escolha a opção para especificar o caminho absoluto da pasta \
 					 \n a ser dividida e caminho absoluto da pasta de destino dos arquivos. \
-					 \n [D] - Definir | Precione qualquer tecla para cancelar."
+					 \n [D] - Definir | $opcT"
 
 		fi
 
@@ -473,14 +539,19 @@ function definirDiretórios()
 	fi
 
 	if [[ $opc = "C" ]]; then
-	   
+	   	
+	   	if [[ $criarDire -eq 0 ]];then
+	   		echo "Verifica existencia da pasta"
+	   		criarDiretorios
+	   	fi
+	    
 	    montarDiretorios
 
 	elif [[ $opc = "D" ]] && [[ $paran =  "True" ]]; then
 
 		path=$(pwd)
 		# Caminho absoluto da pasta com muitíssimos arquivos
-		echo -e "\n  A pasta a ser dividida é onde o\e[1m $(basename "$0")\e[m \
+		echo -e "\n  A pasta a ser dividida é onde o \e[1m$(basename "$0")\e[m \
 				 \n está em execução? \n \
 				 \n \e[1m $path \e[m \n \
 				 \n [S] - Sim | [N] - Não | Precione qualquer tecla para cancelar."
@@ -545,8 +616,13 @@ function definirDiretórios()
 		fi
 
 	else
-
-	   	echo -e " Operação cancelada. Nenhum arquivo ou pasta foi modificado. \n"
+		if [[ $opc = "N" ]]; then
+			# Regra para apagar os registros dos marcadores de endereços
+			leituraEscrita=1
+			verificadorBOeD
+		else
+	   		echo -e " Operação cancelada. Nenhum arquivo ou pasta foi modificado. \n"
+		fi
 	fi
 
 	exit 0
@@ -594,7 +670,9 @@ em, diversas pastas com a quantidade de arquivos pré-definidos.
 if [[ -z $1 ]]; then
 	corInfo="41;"
 	mensaInfo="!!! ATENÇÃO !!!"
+	criarDire=0
 else
+	criarDire=1
 	corInfo="42;"
 	mensaInfo="!!! Defina os diretórios !!!"
 
@@ -603,6 +681,9 @@ fi
 pathBasename=$(find ~/ -name $(basename "$0"))
 # Pega o endereço de onde o Shellscript está.
 
+# varR=2
+leituraEscrita=0
+verificadorBOeD
 definirDiretórios
 
 exit 0
@@ -610,8 +691,8 @@ exit 0
 # Marcadore de backups dos diretórios, caso, a leitura do diretório pesquisa tenha sido interrompida antes de concluír o arquivo de controle.
 # Chamado em diversos momentos da execução do script
 
-Borigem /home/edgarbruno/.local/share/Trash/files/backup - Rafa/Data Recovery 2017-01-27 at 07.19.25/Gráfico/jpg 
+Borigem
 # Backup do endereço de origem
 
-Bdestin /media/edgarbruno/F141-93F4/Gráfico/J2 
+Bdestin
 # Backup do endereço de destino

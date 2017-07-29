@@ -106,13 +106,19 @@ function verificadorBOeD()
                     eval "${listPaths[x]}='${!listVar[x]}'"
                     # Atribui o valor encontrado no Marcado nas variável principais.
                     # echo "Pasta existe"
+                    ((opc++))
                     ((varR--))
                 else
                     # Verifica se o caminho encontrado existe - NÂO
                     echo -e "Pasta NÃO ENCONTRADA\
                             \n \e[1m ${!listVar[x]} \e[m"
                     ((varR++))
-                fi 
+                fi
+                 # Regra para a opção correta
+                if [[ $opc -eq 21 ]]; then
+                    paran="Not Null"
+                    cancelVAR="Not Null"
+                fi
 
             else
                 # Marcador vazio = Padrão satisfeito
