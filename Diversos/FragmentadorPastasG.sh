@@ -47,6 +47,13 @@ function mensaAlert()
 
 function main()
 {
+	if [[ -z $dNumero ]]; then
+
+		dNumero=0
+		# Numero final do diretório Fragmentado
+
+	fi
+
 	arquivoCont=0
 	recebeSaida=
 
@@ -104,20 +111,18 @@ function main()
 				arquivoCP=
 
 			fi
-
 	done
 
 	if [[ $saidaWhile -eq 0 ]]; then
 		main
 	fi
-
-	leituraEscrita=1
-	verificadorBOeD
-	# Apagar os marcadores
 }
 
 function leituraARQ()
 {
+	nArquivosMAX=999
+	# Limitator de arquivos copiados por pasta
+	
 	# Funcao para verificar e criar subdivisões do arquivo de controle
 	
 	checkarquivoControleContador=$(echo $pastaDestinoBase"/"$pastaOrigin"_CP_"$arquivoControleContador".txt")
@@ -125,7 +130,7 @@ function leituraARQ()
 
 	if [[ ! -f $checkarquivoControleContador ]]; then
 		
-		arquivoCPLeitura=$(cat "$checkArquivosCP" | sed '1, '${nArquivosMAX}'!d')
+		arquivoCPLeitura=$(cat "$checkArquivosCP" | sed '15, '${nArquivosMAX}'!d')
 		 # Recebe do arquivo de controle N linhas a fim de criar o subarquivo de controle
 
 		checkarquivoControleContador=$(echo $pastaDestinoBase"/"$pastaOrigin"_CP_"$arquivoControleContador".txt")
@@ -139,7 +144,7 @@ function leituraARQ()
 		echo -e "\nCriando aquivo de controle\n$checkarquivoControleContador\n"
 
 		echo -e "Removendo os nomes dos arquivos da listagem principal\n"
-		sed -i '1, '${nArquivosMAX}'d' "$checkArquivosCP"
+		sed -i '15, '${nArquivosMAX}'d' "$checkArquivosCP"
 		
 		#read -p "Press any key to continue... " -n1 -s
 		
@@ -155,7 +160,17 @@ function leituraARQ()
 
 			echo " * Leitura sem resultados"
 			if [[ ! -z $recebeSaida ]]; then
-				echo " * Fim do processamento "
+				
+				varTXT="\n ---------------------------------\
+						\n $leiCopy `date +"%H:%M:%S | %Y-%m-%d"`\n\
+						\n**********************************"
+				 
+				sed -i '12s/^/'"$varTXT"'/' $checkArquivosCP
+
+				rm $checkarquivoControleContador
+				leituraEscrita=1
+				verificadorBOeD
+				# Apagar os marcadores
 				exit 0
 			else
 				recebeSaida=
@@ -195,7 +210,7 @@ function verificadorBOeD()
 	# leituraEscrita=1 Verificação dos endereços nos marcadores de Backups para APAGAR/ESCREVER
 
 	for i in ${listOD[@]};do
-        
+
         eval "${listVar[x]}=\"$(sed -n '/'$i'/h;${x;p;}; ' "$pathBasename" | sed 's/'$i'//;s/^ //;s/ *$//')\"" 
 
         if [[ $leituraEscrita -eq 0 ]]; then
@@ -248,9 +263,6 @@ function verificadorBOeD()
             if [[ -z ${!listVar[x]} ]]; then
                 # Escreve os marcadores de backups de Origem e Destino
                 # ESCREVE
-
-                echo "ESCREVE ... "
-                echo "IS NULL  ------>" #[${!listPaths[x]}]
                 echo "$(sed ':a;$!{N;ba;};s|\(.*\)'$i'|\1'$i' '"${!listPaths[x]}"'|' < "$pathBasename")" > "$pathBasename" #----> Escrever OK
                 # Substituir a última ocorrência de uma string por outra 
 
@@ -258,9 +270,6 @@ function verificadorBOeD()
 
                 # Paga os marcadores de backups de Origem e Destino
                 # APAGA
-
-                echo "APAGA ... $i"
-                echo "NOT NULL ------> " #[${!listVar[x]}]
                 # echo "$(sed ':a;$!{N;ba;};s|\(.*\)'$i' '"${!listVar[x]}"'|\1'$i'|' < "$pathBasename")" > "$pathBasename" #----> Pagar OK
                 echo "$(sed 's/^'$i'.*/'$i'/' < "$pathBasename")" > "$pathBasename"
                 # Apaga TUDO que estiver após o marcador não, o endereço já existente
@@ -280,16 +289,20 @@ function verificadorBOeD()
     fi
 }
 
-function montarDiretorios()
-{	
-	# Montar diretórios
+function escreveArquivoLeitura()
+# Escreve o ArquivoCP com a leitura do diretório especificado em $path
+{
+	arquivoControleContador=0	
+	corInfo="42;"
+
+	leiCom="Completed Read:"
+	leiCopy="Copy Compleded:"
+
 	pastaOrigin=$(echo $path | sed 's/^.*\///')
 	# Apenas o nome da pasta
 
 	checkArquivosCP=$(echo $pastaDestinoBase"/"$pastaOrigin"_CP.txt")
 	# Arquivo que conterá todos os arquivos da pasta | Esse, será subdividido e esvaziado
-
-	echo "montarDiretorios"
 	
 	if [[ -z $vaux ]];then
 		# Regra para manter os registros dos marcadores
@@ -297,14 +310,22 @@ function montarDiretorios()
 		leituraEscrita=1
 		verificadorBOeD
 	fi
-
-	exit 0
-
 	
 	if [[ ! -f "$checkArquivosCP" ]]; then
-		# Verifica se o arquivo de controle existe	
+		# Verifica se o arquivo de controle existe
+
+		echo -e "*** $(basename "$0") ***\n\
+				\n Started Read:   `date +"%H:%M:%S | %Y-%m-%d"`\
+				\n ---------------------------------\
+				\n Origem  $path\
+				\n Destino $pastaDestinoBase\
+				\n --------------------------------- \n\n\n\n" > "$checkArquivosCP"
+		# cabeçalho
+		
 		local x=0
 		local y=0
+		local z=0
+
 		cd "$path"
 
 		for f in *; do
@@ -341,37 +362,47 @@ function montarDiretorios()
 			    	y=0
 			    fi
 
-			   read -p "Press any key to continue... $x" -n1 -s
-
 				echo -ne "  \e[${coAle}37;1m       $mensaInfo       \e[m\r"
 
 				((x++))
 				((y++))
+				((z++))
 
-				#----
 			fi
 		done
 
-		cd -
-	else
-		# Verifica se o processamento do arquivo foi concluído
-		echo -e "\nVerificando o arquivo de controle... \n"
-		
-		if [[ -f $(cat "$checkArquivosCP" | sed '/ -_- Processamento concluído -_- /!d') ]]; then
-			echo -e " *** Todos os arquivos foram movidos ***\n"
-			exit 0
-		fi
+		varTXT="\n $leiCom `date +"%H:%M:%S | %Y-%m-%d"`\
+				 \n --------------------------------- \
+				 \n Total de arquivos: $z"
 
+		sed -i '8s/^/'"$varTXT"'/' $checkArquivosCP
+
+		mensaInfo="Leitura completa..."
+		cd -
+
+	else
+
+		mensaInfo="Verificando o arquivo de controle..."
+		
+		if [[ -z $(sed -n '/'"$leiCom"'/p' "$checkArquivosCP") ]];then
+			echo "O arquivo de leitura, ainda precisa ser finalizado corretamente"
+			
+			rm $checkArquivosCP
+			vaux="v"
+			escreveArquivoLeitura
+
+		elif [[ -z $(sed -n '/'"$leiCopy"'/p' "$checkArquivosCP") ]]; then
+			
+			echo -e "\n"
+			mensaInfo="Todos os arquivos listados foram movidos"
+		# read -p "Press any key to continue... A" -n1 -s
+
+		else
+			echo "O arquivo de leitura, foi finalizado corretamente"
+		fi
 	fi
 
-	dNumero=0
-	 # Numero final do diretório Fragmentado
-
-	nArquivosMAX=999
-	 # Limitator de arquivos copiados por pasta
-
-	arquivoControleContador=0
-
+	mensaAlert
 	main
 }
 
@@ -407,7 +438,7 @@ function criarDiretorios()
 
 		varDIR=$opc
 
-		if [[  $opc = "CANCELAR" ]]; then
+		if [[ $opc = "CANCELAR" ]]; then
 				cancelVAR=5
 				definirDiretórios
 		
@@ -504,7 +535,6 @@ function definirDiretórios()
 				echo -e "\n A última execução do \e[1m$(basename "$0")\e[m foi terminada \
 						 \n inesperadamente. \
 						 \n Deseja que o script continue de onde parou?"
-				# criarDire=0
 
 			else
 				# Pastas definidas manualmente
@@ -523,7 +553,6 @@ function definirDiretórios()
 			else
 
 				echo -e "\n [C] - Confirmar | $opcT"
-
 				# Cria diretório quando é executado o script sem passar paramentos
 			fi
 
@@ -545,7 +574,7 @@ function definirDiretórios()
 	   		criarDiretorios
 	   	fi
 	    
-	    montarDiretorios
+	    escreveArquivoLeitura
 
 	elif [[ $opc = "D" ]] && [[ $paran =  "True" ]]; then
 
@@ -668,20 +697,18 @@ em, diversas pastas com a quantidade de arquivos pré-definidos.
         esac
 
 if [[ -z $1 ]]; then
+	criarDire=0
 	corInfo="41;"
 	mensaInfo="!!! ATENÇÃO !!!"
-	criarDire=0
 else
 	criarDire=1
 	corInfo="42;"
 	mensaInfo="!!! Defina os diretórios !!!"
-
 fi
 
-pathBasename=$(find ~/ -name $(basename "$0"))
+pathBasename=$(readlink -f ${BASH_SOURCE[0]})
 # Pega o endereço de onde o Shellscript está.
 
-# varR=2
 leituraEscrita=0
 verificadorBOeD
 definirDiretórios
