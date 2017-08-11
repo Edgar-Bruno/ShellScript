@@ -20,7 +20,7 @@ done
 local y=""
 local x=""
 
-while [[ y -lt 6 ]]; do
+while [[ y -lt 1 ]]; do
 
     if [[ x -gt 1 ]]; then
         x=0
@@ -40,7 +40,7 @@ while [[ y -lt 6 ]]; do
 done
 
 x=0
-for i in {0..50}; do
+for i in {0..1}; do
     
     if [[ x -le 24 ]]; then
         echo "******* $i"
@@ -69,7 +69,8 @@ leituraEscrita=0
 # leituraEscrita=0 Verificação padrão dos marcadores de Backups de endereços. O padrão é, marcadores VAZIOS
 # leituraEscrita=1 Verificação dos marcadores de Backups de endereços a fim de
 
-pathBasename=$(find ~/ -name $(basename "$0"))
+pathBasename=$(readlink -f ${BASH_SOURCE[0]})
+# pathBasename=$(find ~/ -name $(basename "$0"))
 # Pega o endereço de onde o Shellscript está.
 # echo "----- $pathBasename"
 
@@ -128,7 +129,7 @@ function verificadorBOeD()
 
         else
             varR=0
-            # Apaga ou esqueve nos marcadores dos endereços de backups de Origem e Destino
+            # Apaga ou escreve nos marcadores dos endereços de backups de Origem e Destino
 
             if [[ -z ${!listVar[x]} ]]; then
                 # Escreve os marcadores de backups de Origem e Destino
@@ -167,7 +168,90 @@ function verificadorBOeD()
     fi
 }
 
-verificadorBOeD
+# verificadorBOeD
+pastaDestinoBase="/media/edgarbruno/F141-93F4/Gráfico/J2Bori"
+path="/home/edgarbruno/.local/share/Trash/files/backup"
+    
+#pastaDestinoBase=
+#path=
+
+# ARRAY
+listOD=(Borigem Bdestin)
+# Marcadores dos backups dos endereços de Origem e Destino mais os seus respectivos valores
+
+listPaths=(path pastaDestinoBase)
+# Lista das variável do diretórios principais.
+
+leituraEscrita=0
+
+function verificadorBOeDNEW()
+{
+# Refatoração do metodo verificadorBOeD
+
+    if [ $leituraEscrita -eq 0 ]; then
+    # Aqui é definido quando os marcadores serão escritos ou apagados
+    # = 0 -> Leitura dos Marcadores encontrados
+
+        local leiORI="$(sed -n '/'${listOD[0]}'/h;${x;p;}' "$pathBasename")"
+        # Imprimir a última ocorrência da linha com determinada string
+        # Recebe os marcadores de backups e seus valores
+
+        eval "${listOD[0]}='$(sed 's/'${listOD[1]}'.*$//;s/'${listOD[0]}'//;s/^ //;s/ *$//' <<< "$leiORI")'"
+        # Pega o caminho absoluto da origem dos dados
+        
+        eval "${listOD[1]}='$(sed 's/^.*'${listOD[1]}' //' <<< "$leiORI")'"
+        # Pega o caminho absoluto do destino dos dados
+        
+        if [[ -d ${!listOD[0]} ]] && [[ -d ${!listOD[1]} ]]; then
+        # Verifica se os caminhos exitem
+        # Mandem os marcadores existente para continuar o processamento
+
+            echo "EXISTEM"
+            eval "${listPaths[0]}='${!listOD[0]}'"
+            eval "${listPaths[1]}='${!listOD[1]}'"
+       
+        else
+        # !!! CASO OCORRA UMA FALHA ONDE APENAS UM DOS MARCADORES ESTÁ PREENCHIDO, AMBOS SERÃO APAGADOS
+        
+            echo "NÂO"
+            eval "${listOD[0]}="
+            eval "${listOD[1]}="
+            leituraEscrita=1
+            verificadorBOeDNEW
+        fi
+
+    else 
+    # != 0 -> Escreve ou apaga os marcadores
+    
+        echo "Escreve/Apaga"    
+        # String a ser gravado nos marcadores
+        local varW="${listOD[0]} ${!listPaths[0]} ${listOD[1]} ${!listPaths[1]}"
+
+        sed -i ':a;$!{N;ba;};s|\(.*\)'${listOD[0]}'.*|\1'"$varW"'|' "$pathBasename" # Escrita/Apaga OK
+        # Substirui a última ocorrencia de string por outra apagando todo o conteúdo da linha
+
+    fi
+}
+
+
+# eval $(echo "rsync -avhr --progress $(echo -e "\"$path/$arquivoCP\"") $(echo -e "\"$pastaDestinoBase/Fragmentado_$dNumero/$arquivoCP\"")")
+verificadorBOeDNEW
+#sed -i ':a;$!{N;ba;};s/\(.*\)Borigem/\1Borigem EDgar BRUNO SANJIRO/' "$pathBasename"
+# Substituir a última ocorrência de uma string por outra
+
+
+
+
+# Print lines between PAT1 and PAT2
+
+# PAT1
+# 3    - first block
+# 4
+# PAT2
+# 5
+# sed -n '/PAT1/,/PAT2/{//!p}'
+
+# sed 's/dia.*$//'
 
 # varX=$(sed -n '/Borigem/h;${x;p;}' "$pathBasename" | sed 's/Borigem //g')
 # Pega o backup do endereço completo de origem
@@ -243,5 +327,4 @@ exit 0
 # Backup dos diretórios, caso, a leitura do diretório pesquisa tenha sido interrompida antes de concluír o arquivo de controle.
 # Chamado com paramento especifico
 
-Borigem
-Bdestin                                                                                                                            
+Borigem /home/edgarbruno/.local/share/Trash/files/backup Bdestin /media/edgarbruno/F141-93F4/Gráfico/J2Bori

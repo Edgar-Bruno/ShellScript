@@ -4,10 +4,12 @@
 # Os arquivos são da recuperação de arquivos, utilizando o FOREMOST, que tem o seguinte formato "112364.tipo_arquivo"
 # Arquivo de Controle: ele conterá a listagem de todos os arquivo contidos na pasta de origem
 
+	# sed 's/^.*\///' arquivo -> sosed.html (Aqui retornar tudo que estiver posterior ao caracter "selecionado")
+
+	# https://linux.die.net/abs-guide/x15683.html
 	# arquivo = SED http://thobias.org/doc/sosed.html
 	# http://sed.sourceforge.net/sed1line_pt-BR.html
 	# http://terminalroot.com.br/2015/07/30-exemplos-do-comando-sed-com-regex.html
-	# sed 's/^.*\///' arquivo -> sosed.html (Aqui retornar tudo que estiver posterior ao caracter "selecionado")
 
 function cursorVI()
 {
@@ -185,113 +187,61 @@ function leituraARQ()
 
 function verificadorBOeD()
 # Função responsavel por verificar se a execulção do script ocorreu sem erros.
-# Há dois marcadores nesse arquivo; Borigen e Bdestin
+# Há dois marcadores no final desse arquivo
 
 {
-	opc=19
-	# Variavel responsavel pelo fluxo
+# Refatoração do metodo verificadorBOeD
 
-	# ARRAY
-	local listOD=(Borigem Bdestin)
-	# Marcadores dos backups dos endereços de Origem e Destino
+    if [ $leituraEscrita -eq 0 ]; then
+    # Aqui é definido quando os marcadores serão escritos ou apagados
+    # = 0 -> Leitura dos Marcadores encontrados
 
-	local listVar=(OrigT DestT)
-	# Lista de variaveis temporárias que recebem os endereços de Origem e Destino
+        local leiORI="$(sed -n '/'${listOD[0]}'/h;${x;p;}' "$pathBasename")"
+        # Imprimir a última ocorrência da linha com determinada string
+        # Recebe os marcadores de backups e seus valores
 
-	local listPaths=(path pastaDestinoBase)
-	# Lista das variável principais.
-	# Lista com os endereços de Origem e Destino
+        eval "${listOD[0]}='$(sed 's/'${listOD[1]}'.*$//;s/'${listOD[0]}'//;s/^ //;s/ *$//' <<< "$leiORI")'"
+        # Pega o caminho absoluto da origem dos dados
+        
+        eval "${listOD[1]}='$(sed 's/^.*'${listOD[1]}' //' <<< "$leiORI")'"
+        # Pega o caminho absoluto do destino dos dados
+        
+        if [[ -d ${!listOD[0]} ]] && [[ -d ${!listOD[1]} ]]; then
+        # Verifica se os caminhos exitem
+        # Mandem os marcadores existente para continuar o processamento
 
-	local x=0
-	local varR=2
-
-	# leituraEscrita=0
-	# leituraEscrita=0 Verificação padrão dos marcadores de Backups de endereços. O padrão é, marcadores VAZIOS
-	# leituraEscrita=1 Verificação dos endereços nos marcadores de Backups para APAGAR/ESCREVER
-
-	for i in ${listOD[@]};do
-
-        eval "${listVar[x]}=\"$(sed -n '/'$i'/h;${x;p;}; ' "$pathBasename" | sed 's/'$i'//;s/^ //;s/ *$//')\"" 
-
-        if [[ $leituraEscrita -eq 0 ]]; then
-            # Verifica se os endereços de backups de Origem e Destino estão preencidos no marcadores
-            
-            if [[ ! -z ${!listVar[x]} ]]; then
-                # Execuçao do script terminada inesperadamente e deve ser verificado
-                echo -e "Marcador \e[1m$i\e[m preencido = Padrão inesperadamente"
-
-                if [[ -d "${!listVar[x]}" ]]; then
-
-				    corInfo="42;"
-					mensaInfo="!!! Última execulção terminada inesperadamente !!!"
-                    # Verifica se o caminho encontrado existe - SIM = Marcadores MANTIDOS
-                    eval "${listPaths[x]}='${!listVar[x]}'"
-                    # Atribui o valor encontrado no Marcado nas variável principais.
-                    echo -e "Pasta existente\
-                            \n \e[1m ${!listVar[x]}\e[m"
-                    ((opc++))
-                    ((varR--))
-                    vaux=5
-                else
-                    # Verifica se o caminho encontrado existe - NÂO = Marcadores APAGADOS
-                    echo -e "Pasta NÃO ENCONTRADA\
-                            \n \e[1m ${!listVar[x]}\e[m"
-                    ((varR++))
-                fi
-
-                 # Regra para a opção correta
-                if [[ $opc -eq 21 ]]; then
-                    paran=
-                    cancelVAR=
-                fi
-
-            else
-                # Marcador vazio = Padrão satisfeito
-                echo -e "Marcador \e[1m$i\e[m vazio = Padrão esperado"
-                # echo "IS NULL ------> [${listVar[x]}]"
-                if [[ $varR -eq 2 ]]; then
-                	varR=0
-                	opc=
-                fi
-            fi
-
+            echo "EXISTEM"
+            eval "${listPaths[0]}='${!listOD[0]}'"
+            eval "${listPaths[1]}='${!listOD[1]}'"
+            opc=21
+       
         else
- 
-            varR=0
-            # Apaga ou esqueve nos marcadores dos endereços de backups de Origem e Destino
-
-            if [[ -z ${!listVar[x]} ]]; then
-                # Escreve os marcadores de backups de Origem e Destino
-                # ESCREVE
-                echo "$(sed ':a;$!{N;ba;};s|\(.*\)'$i'|\1'$i' '"${!listPaths[x]}"'|' < "$pathBasename")" > "$pathBasename" #----> Escrever OK
-                # Substituir a última ocorrência de uma string por outra 
-
-            else
-
-                # Paga os marcadores de backups de Origem e Destino
-                # APAGA
-                # echo "$(sed ':a;$!{N;ba;};s|\(.*\)'$i' '"${!listVar[x]}"'|\1'$i'|' < "$pathBasename")" > "$pathBasename" #----> Pagar OK
-                echo "$(sed 's/^'$i'.*/'$i'/' < "$pathBasename")" > "$pathBasename"
-                # Apaga TUDO que estiver após o marcador não, o endereço já existente
-
-            fi
+        # !!! CASO OCORRA UMA FALHA ONDE APENAS UM DOS MARCADORES ESTÁ PREENCHIDO, AMBOS SERÃO APAGADOS
+        
+            echo "NÂO"
+            eval "${listOD[0]}="
+            eval "${listOD[1]}="
+            leituraEscrita=1
+            verificadorBOeD
         fi
-        ((x++))
-        # Enumeração forçada
-        # read -p "Press any key to continue... $varR" -n1 -s
-    done
 
-	# !!! CASO OCORRA UMA FALHA ONDE APENAS UM DOS MARCADORES ESTÁ PREENCHIDO, AMBOS SERÃO APAGADOS
-	if [[ $varR -gt 0 ]]; then
-        leituraEscrita=1
-        verificadorBOeD
-        opc=
+    else 
+    # != 0 -> Escreve ou apaga os marcadores
+    
+        echo "Escreve/Apaga"    
+        # String a ser gravado nos marcadores
+        local varW="${listOD[0]} ${!listPaths[0]} ${listOD[1]} ${!listPaths[1]}"
+
+        sed -i ':a;$!{N;ba;};s|\(.*\)'${listOD[0]}'.*|\1'"$varW"'|' "$pathBasename" # Escrita/Apaga OK
+        # Substirui a última ocorrencia de string por outra apagando todo o conteúdo da linha
+
     fi
-}
+}      
 
 function escreveArquivoLeitura()
 # Escreve o ArquivoCP com a leitura do diretório especificado em $path
 {
+	
 	arquivoControleContador=0	
 	corInfo="42;"
 
@@ -309,6 +259,8 @@ function escreveArquivoLeitura()
 		echo "Marcadores PREENCIDOS ------ $vaux"
 		leituraEscrita=1
 		verificadorBOeD
+		echo "AQUI ---"
+		exit 0
 	fi
 	
 	if [[ ! -f "$checkArquivosCP" ]]; then
@@ -523,8 +475,9 @@ function definirDiretórios()
 			    path=$(pwd)
 			    # Caminho absoluto da pasta com muitíssimos arquivos
 
-				pastaDestinoBase=$(echo $path"_"Fragmentado)
-				# pastaDestinoBase=$(echo "/media/user/ArquivosR/Recuperados/mp3/mp3_"Fragmentado)
+				eval "${listPaths[1]}=${!listPaths[0]}\"_Fragmentado\""
+
+				# pastaDestinoBase="/media/user/ArquivosR/Recuperados/mp3/mp3_Fragmentado"
 				# Diretório onde será criado subpastas e,  copiado os arquivos da pasta de original
 		    
 				echo -e "\n  A pasta a ser dividida é onde o \e[1m$(basename "$0")\e[m \
@@ -542,8 +495,8 @@ function definirDiretórios()
 
 		    fi
 
-		    echo -e "\n origem  \e[1m $path \e[m\
-					 \n destino \e[1m $pastaDestinoBase \e[m \n \
+		    echo -e "\n origem  \e[1m ${!listPaths[0]} \e[m\
+					 \n destino \e[1m ${!listPaths[1]} \e[m \n \
 					 \n Os caminhos estão corretos?"
 
 			if [[ $opc = "21" ]];then
@@ -648,6 +601,8 @@ function definirDiretórios()
 		if [[ $opc = "N" ]]; then
 			# Regra para apagar os registros dos marcadores de endereços
 			leituraEscrita=1
+			eval "${listPaths[0]}="
+            eval "${listPaths[1]}="
 			verificadorBOeD
 		else
 	   		echo -e " Operação cancelada. Nenhum arquivo ou pasta foi modificado. \n"
@@ -709,6 +664,13 @@ fi
 pathBasename=$(readlink -f ${BASH_SOURCE[0]})
 # Pega o endereço de onde o Shellscript está.
 
+# ARRAY
+listOD=(Borigem Bdestin)
+# Marcadores dos backups dos endereços de Origem e Destino mais os seus respectivos valores
+
+listPaths=(path pastaDestinoBase)
+# Lista das variável do diretórios principais.
+
 leituraEscrita=0
 verificadorBOeD
 definirDiretórios
@@ -718,8 +680,6 @@ exit 0
 # Marcadore de backups dos diretórios, caso, a leitura do diretório pesquisa tenha sido interrompida antes de concluír o arquivo de controle.
 # Chamado em diversos momentos da execução do script
 
-Borigem
 # Backup do endereço de origem
-
-Bdestin
 # Backup do endereço de destino
+Borigem /media/edgarbruno/5CF2D6694A0CDF0C/Recovery_EDGAR/Recovery_KaliLinux/jpg Bdestin /media/edgarbruno/F141-93F4/Gráfico/KaliLinux/jpg
