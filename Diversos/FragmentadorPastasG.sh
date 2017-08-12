@@ -93,12 +93,12 @@ function main()
 
 			if [[ $arquivoCont -le $nArquivosMAX ]]; then
 				if [[ ! -z "$arquivoCP" ]] ; then
-					
-					eval $(echo "rsync -avhr --progress $(echo -e "\"$path/$arquivoCP\"") $(echo -e "\"$pastaDestinoBase/Fragmentado_$dNumero/$arquivoCP\"")")
+
+					eval "rsync -avhr --progress "\"${!listPaths[0]}/$arquivoCP\"" "\"${!listPaths[1]}/Fragmentado_$dNumero/$arquivoCP\"""
 					
 					sed -i "s/>>> ${arquivoCP}/\[ OK \] ${arquivoCP}/" "$checkarquivoControleContador"
 
-					#read -p "Press any key to continue... " -n1 -s
+					# read -p "Press any key to continue... " -n1 -s
 
 					(( arquivoCont++ ))
 					(( l++ ))
@@ -122,9 +122,8 @@ function main()
 
 function leituraARQ()
 {
-	nArquivosMAX=999
+	nArquivosMAX=1014
 	# Limitator de arquivos copiados por pasta
-	
 	# Funcao para verificar e criar subdivisões do arquivo de controle
 	
 	checkarquivoControleContador=$(echo $pastaDestinoBase"/"$pastaOrigin"_CP_"$arquivoControleContador".txt")
@@ -209,16 +208,12 @@ function verificadorBOeD()
         if [[ -d ${!listOD[0]} ]] && [[ -d ${!listOD[1]} ]]; then
         # Verifica se os caminhos exitem
         # Mandem os marcadores existente para continuar o processamento
-
-            echo "EXISTEM"
             eval "${listPaths[0]}='${!listOD[0]}'"
             eval "${listPaths[1]}='${!listOD[1]}'"
             opc=21
        
         else
         # !!! CASO OCORRA UMA FALHA ONDE APENAS UM DOS MARCADORES ESTÁ PREENCHIDO, AMBOS SERÃO APAGADOS
-        
-            echo "NÂO"
             eval "${listOD[0]}="
             eval "${listOD[1]}="
             leituraEscrita=1
@@ -227,10 +222,9 @@ function verificadorBOeD()
 
     else 
     # != 0 -> Escreve ou apaga os marcadores
-    
-        echo "Escreve/Apaga"    
-        # String a ser gravado nos marcadores
+
         local varW="${listOD[0]} ${!listPaths[0]} ${listOD[1]} ${!listPaths[1]}"
+        # String a ser gravado nos marcadores
 
         sed -i ':a;$!{N;ba;};s|\(.*\)'${listOD[0]}'.*|\1'"$varW"'|' "$pathBasename" # Escrita/Apaga OK
         # Substirui a última ocorrencia de string por outra apagando todo o conteúdo da linha
@@ -254,14 +248,12 @@ function escreveArquivoLeitura()
 	checkArquivosCP=$(echo $pastaDestinoBase"/"$pastaOrigin"_CP.txt")
 	# Arquivo que conterá todos os arquivos da pasta | Esse, será subdividido e esvaziado
 	
-	if [[ -z $vaux ]];then
+	# if [[ -z $vaux ]];then
 		# Regra para manter os registros dos marcadores
-		echo "Marcadores PREENCIDOS ------ $vaux"
-		leituraEscrita=1
-		verificadorBOeD
-		echo "AQUI ---"
-		exit 0
-	fi
+	#	echo "Marcadores PREENCIDOS ------ $vaux"
+	#	leituraEscrita=1
+	#	verificadorBOeD
+	# fi
 	
 	if [[ ! -f "$checkArquivosCP" ]]; then
 		# Verifica se o arquivo de controle existe
@@ -269,8 +261,8 @@ function escreveArquivoLeitura()
 		echo -e "*** $(basename "$0") ***\n\
 				\n Started Read:   `date +"%H:%M:%S | %Y-%m-%d"`\
 				\n ---------------------------------\
-				\n Origem  $path\
-				\n Destino $pastaDestinoBase\
+				\n Origem  ${!listPaths[0]}\
+				\n Destino ${!listPaths[1]}e\
 				\n --------------------------------- \n\n\n\n" > "$checkArquivosCP"
 		# cabeçalho
 		
@@ -278,7 +270,7 @@ function escreveArquivoLeitura()
 		local y=0
 		local z=0
 
-		cd "$path"
+		cd "${!listPaths[0]}"
 
 		for f in *; do
 			# Este for retorna TUDO que existe no diretório pesquisado
@@ -362,10 +354,10 @@ function criarDiretorios()
 {
 	if [[ $criarDire -eq 0 ]]; then
 		# --------- Caso o script tenha sido executado sem parametros
-		if [[ ! -d "$pastaDestinoBase" ]]; then
+		if [[ ! -d "${!listPaths[1]}" ]]; then
 			# Verifica se a subpasta não exite
 
-			mkdir -pv "$pastaDestinoBase" # cria a subpasta com o caminho absoluto 
+			mkdir -pv "${!listPaths[1]}" # cria a subpasta com o caminho absoluto 
 			# Esse comando cria o diretórimo mesmo com espaços em branco
 			
 		fi
@@ -531,11 +523,11 @@ function definirDiretórios()
 
 	elif [[ $opc = "D" ]] && [[ $paran =  "True" ]]; then
 
-		path=$(pwd)
+		eval "${listPaths[0]}=$(pwd)"
 		# Caminho absoluto da pasta com muitíssimos arquivos
 		echo -e "\n  A pasta a ser dividida é onde o \e[1m$(basename "$0")\e[m \
 				 \n está em execução? \n \
-				 \n \e[1m $path \e[m \n \
+				 \n \e[1m ${!listPaths[0]} \e[m \n \
 				 \n [S] - Sim | [N] - Não | Precione qualquer tecla para cancelar."
 
 		cursorVI
@@ -682,4 +674,4 @@ exit 0
 
 # Backup do endereço de origem
 # Backup do endereço de destino
-Borigem /media/edgarbruno/5CF2D6694A0CDF0C/Recovery_EDGAR/Recovery_KaliLinux/jpg Bdestin /media/edgarbruno/F141-93F4/Gráfico/KaliLinux/jpg
+Borigem /home/edgarbruno/Workspace/ShellScript/Diversos Bdestin /home/edgarbruno/Workspace/ShellScript/Diversos_Fragmentado
