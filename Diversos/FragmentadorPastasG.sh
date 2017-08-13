@@ -70,10 +70,7 @@ function main()
 	while [[ ! -z $arquivoCP ]]
 
 		do
-			arquivoCP=$(echo -e $arquivoCPLeitura \
-						| sed -e ''$l'!d' \
-						| sed 's/>>> //' \
-						| sed 's/^ \+//')
+			arquivoCP=$(echo -e $arquivoCPLeitura | sed -e ''$l'!d;s/>>> //;s/^ \+//')
 
 			# sed -e ''$l'!d' -> Retorna a linha selecionada
 			# sed 's/>>> //'  -> "Apaga" os caracteres de controle
@@ -126,7 +123,7 @@ function leituraARQ()
 	# Limitator de arquivos copiados por pasta
 	# Funcao para verificar e criar subdivisões do arquivo de controle
 	
-	checkarquivoControleContador=$(echo $pastaDestinoBase"/"$pastaOrigin"_CP_"$arquivoControleContador".txt")
+	checkarquivoControleContador=${!listPaths[1]}"/"$pastaOrigin"_CP_"$arquivoControleContador".txt"
 	# Cria caminho completo da subdivisão do primeiro arquivo
 
 	if [[ ! -f $checkarquivoControleContador ]]; then
@@ -134,20 +131,18 @@ function leituraARQ()
 		arquivoCPLeitura=$(cat "$checkArquivosCP" | sed '15, '${nArquivosMAX}'!d')
 		 # Recebe do arquivo de controle N linhas a fim de criar o subarquivo de controle
 
-		checkarquivoControleContador=$(echo $pastaDestinoBase"/"$pastaOrigin"_CP_"$arquivoControleContador".txt")
-			
+		checkarquivoControleContador=${!listPaths[1]}"/"$pastaOrigin"_CP_"$arquivoControleContador".txt"	
+
 		echo "$arquivoCPLeitura" > "$checkarquivoControleContador"
 			recebeSaida=$$
 
 			# sed '/^$/d' remove espaços em branco
 			# Cria o novo arquivo delimitado
 
-		echo -e "\nCriando aquivo de controle\n$checkarquivoControleContador\n"
+		echo -e "\n Criando aquivo de controle\n$checkarquivoControleContador\n"
 
-		echo -e "Removendo os nomes dos arquivos da listagem principal\n"
+		echo -e " Removendo os nomes dos arquivos da listagem principal\n"
 		sed -i '15, '${nArquivosMAX}'d' "$checkArquivosCP"
-		
-		#read -p "Press any key to continue... " -n1 -s
 		
 		leituraARQ
 
@@ -168,10 +163,13 @@ function leituraARQ()
 				 
 				sed -i '12s/^/'"$varTXT"'/' $checkArquivosCP
 
-				rm $checkarquivoControleContador
-				leituraEscrita=1
+				eval "${listPaths[0]}="
+            	eval "${listPaths[1]}="
+				leituraEscrita=2
+				# read -p "Press any key to continue... " -n1 -s
 				verificadorBOeD
-				# Apagar os marcadores
+				
+				rm $checkarquivoControleContador
 				exit 0
 			else
 				recebeSaida=
@@ -185,51 +183,71 @@ function leituraARQ()
 }
 
 function verificadorBOeD()
+{
 # Função responsavel por verificar se a execulção do script ocorreu sem erros.
 # Há dois marcadores no final desse arquivo
+	local varW=
 
-{
-# Refatoração do metodo verificadorBOeD
-
-    if [ $leituraEscrita -eq 0 ]; then
+    case "$leituraEscrita"  in
     # Aqui é definido quando os marcadores serão escritos ou apagados
     # = 0 -> Leitura dos Marcadores encontrados
+    	0 )
+			varW=" Leitura do Marcadores"
+	        local leiORI="$(sed -n '/'${listOD[0]}'/h;${x;p;}' "$pathBasename")"
+	        # Imprimir a última ocorrência da linha com determinada string
+	        # Recebe os marcadores de backups e seus valores
 
-        local leiORI="$(sed -n '/'${listOD[0]}'/h;${x;p;}' "$pathBasename")"
-        # Imprimir a última ocorrência da linha com determinada string
-        # Recebe os marcadores de backups e seus valores
+	        eval "${listOD[0]}='$(sed 's/'${listOD[1]}'.*$//;s/'${listOD[0]}'//;s/^ //;s/ *$//' <<< "$leiORI")'"
+	        # Pega o caminho absoluto da origem dos dados
+	        
+	        eval "${listOD[1]}='$(sed 's/^.*'${listOD[1]}' //' <<< "$leiORI")'"
+	        # Pega o caminho absoluto do destino dos dados
+	        
+	        leituraEscrita=1
+		    verificadorBOeD
+	    ;;
+    	1 )
+		    if [[ -d ${!listOD[0]} ]] && [[ -d ${!listOD[1]} ]]; then
 
-        eval "${listOD[0]}='$(sed 's/'${listOD[1]}'.*$//;s/'${listOD[0]}'//;s/^ //;s/ *$//' <<< "$leiORI")'"
-        # Pega o caminho absoluto da origem dos dados
-        
-        eval "${listOD[1]}='$(sed 's/^.*'${listOD[1]}' //' <<< "$leiORI")'"
-        # Pega o caminho absoluto do destino dos dados
-        
-        if [[ -d ${!listOD[0]} ]] && [[ -d ${!listOD[1]} ]]; then
-        # Verifica se os caminhos exitem
-        # Mandem os marcadores existente para continuar o processamento
-            eval "${listPaths[0]}='${!listOD[0]}'"
-            eval "${listPaths[1]}='${!listOD[1]}'"
-            opc=21
-       
-        else
-        # !!! CASO OCORRA UMA FALHA ONDE APENAS UM DOS MARCADORES ESTÁ PREENCHIDO, AMBOS SERÃO APAGADOS
-            eval "${listOD[0]}="
-            eval "${listOD[1]}="
-            leituraEscrita=1
-            verificadorBOeD
-        fi
+		    # Verifica se os caminhos exitem
+		    # Mandem os marcadores existente para continuar o processamento
+		    	eval "${listPaths[0]}='${!listOD[0]}'"
+		        eval "${listPaths[1]}='${!listOD[1]}'"
+		        opc=21
+		        paran=
+		       
+		    else
+		    # !!! CASO OCORRA UMA FALHA ONDE APENAS UM DOS MARCADORES ESTÁ PREENCHIDO, AMBOS SERÃO APAGADOS
+		    	if [[ ! -z ${!listOD[0]} ]];then
+			    	eval "${listPaths[0]}="
+			    	eval "${listPaths[1]}="
+			    	leituraEscrita=2
+			    	verificadorBOeD
+		    	fi
+		    fi
+		;;
+		2 )
+	   		# != 0|1 -> Escreve ou apaga os marcadores
+	        varW="${listOD[0]} ${!listPaths[0]} ${listOD[1]} ${!listPaths[1]}"
+	        # String a ser gravado nos marcadores
 
-    else 
-    # != 0 -> Escreve ou apaga os marcadores
+	        sed -i ':a;$!{N;ba;};s|\(.*\)'${listOD[0]}'.*|\1'"$varW"'|' "$pathBasename"
+	        # Substirui a última ocorrencia de string por outra apagando todo o conteúdo da linha
 
-        local varW="${listOD[0]} ${!listPaths[0]} ${listOD[1]} ${!listPaths[1]}"
-        # String a ser gravado nos marcadores
+	        if [[ ! -z ${!listPaths[0]} ]]; then
+	        	varW=" Marcadores de backups escritos"
+	        else
+	        	varW=" Marcadores de backups apagados"
+	        fi
 
-        sed -i ':a;$!{N;ba;};s|\(.*\)'${listOD[0]}'.*|\1'"$varW"'|' "$pathBasename" # Escrita/Apaga OK
-        # Substirui a última ocorrencia de string por outra apagando todo o conteúdo da linha
+		;;
+    	* )
+		 	varW=" Marcadores de backups mantidos"
+        ;;
+    esac
+	
+	echo -e "\n >>> $varW"
 
-    fi
 }      
 
 function escreveArquivoLeitura()
@@ -240,20 +258,14 @@ function escreveArquivoLeitura()
 	corInfo="42;"
 
 	leiCom="Completed Read:"
-	leiCopy="Copy Compleded:"
+	leiCopy="Copy Completed:"
 
-	pastaOrigin=$(echo $path | sed 's/^.*\///')
+	pastaOrigin=$(sed 's/^.*\///' <<< ${!listPaths[0]})
+	# Pega a última string após a \
 	# Apenas o nome da pasta
 
-	checkArquivosCP=$(echo $pastaDestinoBase"/"$pastaOrigin"_CP.txt")
+	checkArquivosCP=${!listPaths[1]}"/"$pastaOrigin"_CP.txt"
 	# Arquivo que conterá todos os arquivos da pasta | Esse, será subdividido e esvaziado
-	
-	# if [[ -z $vaux ]];then
-		# Regra para manter os registros dos marcadores
-	#	echo "Marcadores PREENCIDOS ------ $vaux"
-	#	leituraEscrita=1
-	#	verificadorBOeD
-	# fi
 	
 	if [[ ! -f "$checkArquivosCP" ]]; then
 		# Verifica se o arquivo de controle existe
@@ -262,7 +274,7 @@ function escreveArquivoLeitura()
 				\n Started Read:   `date +"%H:%M:%S | %Y-%m-%d"`\
 				\n ---------------------------------\
 				\n Origem  ${!listPaths[0]}\
-				\n Destino ${!listPaths[1]}e\
+				\n Destino ${!listPaths[1]}\
 				\n --------------------------------- \n\n\n\n" > "$checkArquivosCP"
 		# cabeçalho
 		
@@ -287,7 +299,7 @@ function escreveArquivoLeitura()
 			      
 			    elif [[ x -ge 126 ]] && [[ x -le 250 ]]; then
 
-			        coAle="42"
+			        coAle="42;"
 
 			    else
 
@@ -345,7 +357,6 @@ function escreveArquivoLeitura()
 			echo "O arquivo de leitura, foi finalizado corretamente"
 		fi
 	fi
-
 	mensaAlert
 	main
 }
@@ -356,10 +367,8 @@ function criarDiretorios()
 		# --------- Caso o script tenha sido executado sem parametros
 		if [[ ! -d "${!listPaths[1]}" ]]; then
 			# Verifica se a subpasta não exite
-
 			mkdir -pv "${!listPaths[1]}" # cria a subpasta com o caminho absoluto 
 			# Esse comando cria o diretórimo mesmo com espaços em branco
-			
 		fi
 
 	else
@@ -408,7 +417,7 @@ function criarDiretorios()
 
 				if [[ $? -eq 0 ]]; then
 					echo -e "\n Pasta criada. \n"
-					pastaDestinoBase="$varDIR"
+					eval "${listPaths[1]}=$varDIR"
 					vaux=0
 					
 				else
@@ -432,9 +441,7 @@ function criarDiretorios()
 				 echo -e "\n Cancelado pelo usuário"
 				 cancelVAR=5
 				 vaux=3
-
 			fi
-
 		fi
 
 		if [[ vaux -eq 0 ]]; then
@@ -460,15 +467,14 @@ function definirDiretórios()
 		mensaAlert
 
 		if [[ -z $paran ]]; then
+		# Executado sem passagem de parametros	
 
 			if [[ -z $opc ]]; then
-				# Executado sem passagem de parametros	
 
-			    path=$(pwd)
+			    eval "${listPaths[0]}=$(pwd)"
 			    # Caminho absoluto da pasta com muitíssimos arquivos
 
 				eval "${listPaths[1]}=${!listPaths[0]}\"_Fragmentado\""
-
 				# pastaDestinoBase="/media/user/ArquivosR/Recuperados/mp3/mp3_Fragmentado"
 				# Diretório onde será criado subpastas e,  copiado os arquivos da pasta de original
 		    
@@ -515,10 +521,13 @@ function definirDiretórios()
 	if [[ $opc = "C" ]]; then
 	   	
 	   	if [[ $criarDire -eq 0 ]];then
-	   		echo "Verifica existencia da pasta"
+	   		echo "Verifica existencia da pasta de destino"
 	   		criarDiretorios
+	   		# Regra para escrever os marcaodres dos Barquivo novo ou mantelo
 	   	fi
 	    
+	    leituraEscrita=2
+		verificadorBOeD
 	    escreveArquivoLeitura
 
 	elif [[ $opc = "D" ]] && [[ $paran =  "True" ]]; then
@@ -552,8 +561,8 @@ function definirDiretórios()
 					if [[ -d "$opc" ]]; then
 					# Verifica se a pasta é existente
 					# Altera para o novo caminho absoluto
-						path=$opc
-						echo -e "\n  A pasta \e[1m $path \e[m \
+						eval "${listPaths[0]}='$opc'"
+						echo -e "\n  A pasta \e[1m ${!listPaths[0]} \e[m \
 								 \n é existente."
 						vaux=0
 						break 
@@ -572,10 +581,7 @@ function definirDiretórios()
 							definirDiretórios
 						fi
 					fi
-
-					echo -e "\n -------------------------------"
 				fi
-
 			done
 
 			if [[ vaux -eq 0 ]]; then
@@ -590,15 +596,17 @@ function definirDiretórios()
 		fi
 
 	else
-		if [[ $opc = "N" ]]; then
-			# Regra para apagar os registros dos marcadores de endereços
-			leituraEscrita=1
-			eval "${listPaths[0]}="
-            eval "${listPaths[1]}="
-			verificadorBOeD
+		# Regra para apagar os registros dos marcadores de endereços
+		if [[ -z ${listOD[0]} ]]; then
+			leituraEscrita=3
 		else
-	   		echo -e " Operação cancelada. Nenhum arquivo ou pasta foi modificado. \n"
+			eval "${listPaths[0]}="
+	        eval "${listPaths[1]}="	
+			leituraEscrita=2
+		   	
 		fi
+		verificadorBOeD
+	   	echo -e " Operação cancelada. Nenhum arquivo ou pasta foi modificado. \n"
 	fi
 
 	exit 0
@@ -660,7 +668,7 @@ pathBasename=$(readlink -f ${BASH_SOURCE[0]})
 listOD=(Borigem Bdestin)
 # Marcadores dos backups dos endereços de Origem e Destino mais os seus respectivos valores
 
-listPaths=(path pastaDestinoBase)
+listPaths=(pastaOriginBase pastaDestinoBase)
 # Lista das variável do diretórios principais.
 
 leituraEscrita=0
@@ -668,10 +676,7 @@ verificadorBOeD
 definirDiretórios
 
 exit 0
-
 # Marcadore de backups dos diretórios, caso, a leitura do diretório pesquisa tenha sido interrompida antes de concluír o arquivo de controle.
 # Chamado em diversos momentos da execução do script
 
-# Backup do endereço de origem
-# Backup do endereço de destino
-Borigem /home/edgarbruno/Workspace/ShellScript/Diversos Bdestin /home/edgarbruno/Workspace/ShellScript/Diversos_Fragmentado
+Borigem  Bdestin 
