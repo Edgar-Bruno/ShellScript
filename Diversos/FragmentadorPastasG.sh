@@ -67,7 +67,7 @@ function main()
 		# Linha do arquivo de controle aonde o arquivo está
 	fi
 
-	while [[ ! -z $arquivoCP ]]
+	while [[ -n $arquivoCP ]]
 
 		do
 			arquivoCP=$(echo -e $arquivoCPLeitura | sed -e ''$l'!d;s/>>> //;s/^ \+//')
@@ -89,7 +89,7 @@ function main()
 			fi
 
 			if [[ $arquivoCont -le $nArquivosMAX ]]; then
-				if [[ ! -z "$arquivoCP" ]] ; then
+				if [[ -n "$arquivoCP" ]] ; then
 
 					eval "rsync -avhr --progress "\"${!listPaths[0]}/$arquivoCP\"" "\"${!listPaths[1]}/Fragmentado_$dNumero/$arquivoCP\"""
 					
@@ -155,7 +155,7 @@ function leituraARQ()
 		if [[ -z $arquivoCPLeitura ]]; then
 
 			echo " * Leitura sem resultados"
-			if [[ ! -z $recebeSaida ]]; then
+			if [[ -n $recebeSaida ]]; then
 				
 				varTXT="\n ---------------------------------\
 						\n $leiCopy `date +"%H:%M:%S | %Y-%m-%d"`\n\
@@ -163,14 +163,14 @@ function leituraARQ()
 				 
 				sed -i '12s/^/'"$varTXT"'/' $checkArquivosCP
 
-				eval "${listPaths[0]}="
-            	eval "${listPaths[1]}="
-				leituraEscrita=2
-				# read -p "Press any key to continue... " -n1 -s
-				verificadorBOeD
+				opc="N"
+				auxVerificadorBOeD
 				
 				rm $checkarquivoControleContador
+
+				cat "$checkArquivosCP"
 				exit 0
+
 			else
 				recebeSaida=
 				(( arquivoControleContador++ ))
@@ -192,7 +192,8 @@ function verificadorBOeD()
     # Aqui é definido quando os marcadores serão escritos ou apagados
     # = 0 -> Leitura dos Marcadores encontrados
     	0 )
-			varW=" Leitura do Marcadores"
+			varW=" - Leitura"
+
 	        local leiORI="$(sed -n '/'${listOD[0]}'/h;${x;p;}' "$pathBasename")"
 	        # Imprimir a última ocorrência da linha com determinada string
 	        # Recebe os marcadores de backups e seus valores
@@ -215,14 +216,17 @@ function verificadorBOeD()
 		        eval "${listPaths[1]}='${!listOD[1]}'"
 		        opc=21
 		        paran=
-		       
+		       	varW=" - DIRETORIOS VALIDOS"
 		    else
-		    # !!! CASO OCORRA UMA FALHA ONDE APENAS UM DOS MARCADORES ESTÁ PREENCHIDO, AMBOS SERÃO APAGADOS
-		    	if [[ ! -z ${!listOD[0]} ]];then
+		    # !!! Caso um dos marcadores contem alguma falha, AMBOS SERÃO APAGADOS
+		    	if [[ -n ${!listOD[0]} ]];then
 			    	eval "${listPaths[0]}="
 			    	eval "${listPaths[1]}="
 			    	leituraEscrita=2
 			    	verificadorBOeD
+			    	varW=" - REMOVEDOS"
+			    else 
+			    	varW=" - NULOS"
 		    	fi
 		    fi
 		;;
@@ -234,21 +238,39 @@ function verificadorBOeD()
 	        sed -i ':a;$!{N;ba;};s|\(.*\)'${listOD[0]}'.*|\1'"$varW"'|' "$pathBasename"
 	        # Substirui a última ocorrencia de string por outra apagando todo o conteúdo da linha
 
-	        if [[ ! -z ${!listPaths[0]} ]]; then
-	        	varW=" Marcadores de backups escritos"
+	        if [[ -n ${!listPaths[0]} ]]; then
+	        	varW=" - Escritos"
 	        else
-	        	varW=" Marcadores de backups apagados"
+	        	varW=" - Apagados"
 	        fi
 
 		;;
     	* )
-		 	varW=" Marcadores de backups mantidos"
+		 	varW=" - Mantidos"
         ;;
     esac
 	
-	echo -e "\n >>> $varW"
+	echo -e "\n >>>  Marcadores de backups $varW"
 
-}      
+}
+
+function auxVerificadorBOeD()
+# Metodo para auviliar as opções de leitura e escrita dos marcadores de backups
+{
+	if [[ -z ${!listOD[0]} ]]; then
+		leituraEscrita=2
+
+	elif [[ $opc = "N" ]]; then
+		leituraEscrita=1
+
+	else
+		leituraEscrita=3
+	fi
+	
+	eval "${listOD[0]}=' _ '"
+	verificadorBOeD
+	# read -p "Press any key to continue... " -n1 -s
+}
 
 function escreveArquivoLeitura()
 # Escreve o ArquivoCP com a leitura do diretório especificado em $path
@@ -299,7 +321,7 @@ function escreveArquivoLeitura()
 			      
 			    elif [[ x -ge 126 ]] && [[ x -le 250 ]]; then
 
-			        coAle="42;"
+			        coAle="40;"
 
 			    else
 
@@ -351,8 +373,7 @@ function escreveArquivoLeitura()
 			
 			echo -e "\n"
 			mensaInfo="Todos os arquivos listados foram movidos"
-		# read -p "Press any key to continue... A" -n1 -s
-
+	
 		else
 			echo "O arquivo de leitura, foi finalizado corretamente"
 		fi
@@ -494,7 +515,7 @@ function definirDiretórios()
 		    fi
 
 		    echo -e "\n origem  \e[1m ${!listPaths[0]} \e[m\
-					 \n destino \e[1m ${!listPaths[1]} \e[m \n \
+					 \n destino \e[1m ${!listPaths[1]} \e[m\
 					 \n Os caminhos estão corretos?"
 
 			if [[ $opc = "21" ]];then
@@ -525,9 +546,8 @@ function definirDiretórios()
 	   		criarDiretorios
 	   		# Regra para escrever os marcaodres dos Barquivo novo ou mantelo
 	   	fi
-	    
-	    leituraEscrita=2
-		verificadorBOeD
+
+	    auxVerificadorBOeD
 	    escreveArquivoLeitura
 
 	elif [[ $opc = "D" ]] && [[ $paran =  "True" ]]; then
@@ -597,16 +617,8 @@ function definirDiretórios()
 
 	else
 		# Regra para apagar os registros dos marcadores de endereços
-		if [[ -z ${listOD[0]} ]]; then
-			leituraEscrita=3
-		else
-			eval "${listPaths[0]}="
-	        eval "${listPaths[1]}="	
-			leituraEscrita=2
-		   	
-		fi
-		verificadorBOeD
-	   	echo -e " Operação cancelada. Nenhum arquivo ou pasta foi modificado. \n"
+		auxVerificadorBOeD
+		echo -e " Operação cancelada. Nenhum arquivo ou pasta foi modificado. \n"
 	fi
 
 	exit 0
