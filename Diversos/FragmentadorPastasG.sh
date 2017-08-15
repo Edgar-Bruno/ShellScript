@@ -38,9 +38,7 @@ function mensaAlert()
 		echo -ne "  \e[${coAle}37;1m       $mensaInfo       \e[m\r"
 
 		sleep 0.15
-
 		((x++))
-
 		((y++))
 
 	 done
@@ -164,7 +162,8 @@ function leituraARQ()
 				sed -i '12s/^/'"$varTXT"'/' $checkArquivosCP
 
 				opc="N"
-				auxVerificadorBOeD
+				leituraEscrita=3
+				verificadorBOeD
 				
 				rm $checkarquivoControleContador
 
@@ -245,6 +244,21 @@ function verificadorBOeD()
 	        fi
 
 		;;
+		3 )
+			if [[ -z ${!listOD[0]} ]]; then
+				leituraEscrita=2
+
+			elif [[ $opc = "N" ]]; then
+				leituraEscrita=1
+
+			else
+				leituraEscrita=4
+			fi
+			
+			eval "${listOD[0]}=' _ '"
+			verificadorBOeD
+			# read -p "Press any key to continue... " -n1 -s
+		;;
     	* )
 		 	varW=" - Mantidos"
         ;;
@@ -252,24 +266,6 @@ function verificadorBOeD()
 	
 	echo -e "\n >>>  Marcadores de backups $varW"
 
-}
-
-function auxVerificadorBOeD()
-# Metodo para auviliar as opções de leitura e escrita dos marcadores de backups
-{
-	if [[ -z ${!listOD[0]} ]]; then
-		leituraEscrita=2
-
-	elif [[ $opc = "N" ]]; then
-		leituraEscrita=1
-
-	else
-		leituraEscrita=3
-	fi
-	
-	eval "${listOD[0]}=' _ '"
-	verificadorBOeD
-	# read -p "Press any key to continue... " -n1 -s
 }
 
 function escreveArquivoLeitura()
@@ -547,7 +543,8 @@ function definirDiretórios()
 	   		# Regra para escrever os marcaodres dos Barquivo novo ou mantelo
 	   	fi
 
-	    auxVerificadorBOeD
+	    leituraEscrita=3
+		verificadorBOeD
 	    escreveArquivoLeitura
 
 	elif [[ $opc = "D" ]] && [[ $paran =  "True" ]]; then
@@ -617,7 +614,8 @@ function definirDiretórios()
 
 	else
 		# Regra para apagar os registros dos marcadores de endereços
-		auxVerificadorBOeD
+		leituraEscrita=3
+		verificadorBOeD
 		echo -e " Operação cancelada. Nenhum arquivo ou pasta foi modificado. \n"
 	fi
 
